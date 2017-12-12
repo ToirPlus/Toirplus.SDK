@@ -2,8 +2,15 @@
 https://raw.githubusercontent.com/nebelwolfi/BoL/master/BoL-api/AllClass.lua
 ]]
 
+_G.evade = false
+
+player = GetMyHero()
+myHero = player
+
+SPELL_1, SPELL_2, SPELL_3, SPELL_4 = _Q + 1, _W + 1, _E + 1, _R + 1
+
 function Class() -- for Vector class
-	local cls = {}
+  local cls = {}
 
         cls.__index = cls
         return setmetatable(cls, { __call = function (c, ...)
@@ -27,11 +34,6 @@ function _has_value (tab, val)
     return false
 end
 
-_G.evade = false
-
-player = GetMyHero()
-myHero = player
-
 _objManager = Class()
 
 function _objManager:__init()
@@ -44,7 +46,6 @@ function _objManager:__init()
 	GetAllObjectAroundAnObject(myHero.Addr, 3000)
 
 	-- 0=champ, 1=minion, 2=turret, 3=jungle, 4= Inhibitor, 5=Nexus, 6=Missile, -1= other
-
 	for i, obj in pairs(pObject) do
 		if obj ~= 0 then
 			local object = nil
@@ -116,7 +117,6 @@ function _objManager:update()
 	GetAllObjectAroundAnObject(myHero.Addr, 3000)
 
 	-- 0=champ, 1=minion, 2=turret, 3=jungle, 4= Inhibitor, 5=Nexus, 6=Missile, -1= other
-
 	for i, obj in pairs(pObject) do
 		if obj ~= 0 then
 			local object = nil
@@ -156,15 +156,15 @@ function _objManager:RemoveObject(object)
 		for i=1, self.maxObjects do
 			if self.objects[i] and self.objects[i].Addr == object.Addr then
 				table.remove(self.objects, i)
-				self.maxObjects = self.maxObjects - 1
-
-				setmetatable(self.objects,{
-					__newindex = function(self, key, value)
-						error("Adding to EnemyHeroes is not granted. Use table.copy.")
-					end,
-				})
+				self.maxObjects = self.maxObjects - 1		
+				break		
 			end
 		end
+		setmetatable(self.objects,{
+          __newindex = function(self, key, value)
+            error("Adding to EnemyHeroes is not granted. Use table.copy.")
+          end,
+        })
 	end
 end
 
@@ -223,8 +223,8 @@ local Callbacks = {
 
 AddTickCallback = function(cb) table.insert(Callbacks["Tick"], cb) end
 AddCreateObjCallback = function(cb) table.insert(Callbacks["CreateObject"], cb) end
-AddProcessSpellCallback = function(cb) table.insert(Callbacks["ProcessSpell"], cb) end
 AddDeleteObjCallback = function(cb) table.insert(Callbacks["DeleteObject"], cb) end
+AddProcessSpellCallback = function(cb) table.insert(Callbacks["ProcessSpell"], cb) end
 AddTickWayPointsCallback = function(cb) table.insert(Callbacks["TickWayPoints"], cb) end
 AddAnimationCallback = function(cb) table.insert(Callbacks["Animation"], cb) end
 AddUpdateBuffCallback = function(cb) table.insert(Callbacks["UpdateBuff"], cb) end
@@ -242,7 +242,6 @@ function OnTick()
 
 	objManager:update()
 	heroManager:update()
-
 
 	for i, cb in pairs(Callbacks["Tick"]) do
 		cb()
@@ -293,7 +292,7 @@ function OnCreateObject(object)
 end
 
 function OnDeleteObject(object)
-	objManager:RemoveObject(object)
+	--objManager:RemoveObject(object)
 	for i, cb in pairs(Callbacks["DeleteObject"]) do
 		cb(object)
     end
@@ -317,16 +316,24 @@ function OnDoCast(unit, spell)
   end
 end
 
-
-
 --Faster for comparison of distances, returns the distance^2
 function GetDistanceSqr(p1, p2)
     p2 = p2 or player
     return (p1.x - p2.x) ^ 2 + ((p1.z or p1.y) - (p2.z or p2.y)) ^ 2
 end
 
-function GetDistance(p1, p2)
+function GetDistance(p1, p2)  
     return math.sqrt(GetDistanceSqr(p1, p2))
+end
+
+--p1 should be the BBoxed object
+function GetDistanceBBox(p1, p2)
+    if p2 == nil then p2 = player end
+    p1.minBBox = {x = p1.minBBox_x,y = p1.minBBox_y,z = p1.minBBox_z}
+    p2.minBBox = {x = p2.minBBox_x,y = p2.minBBox_y,z = p2.minBBox_z}
+    assert(p1 and p1.minBBox and p2 and p2.minBBox, "GetDistanceBBox: wrong argument types (<object><object> expected for p1, p2)")
+    local bbox1 = GetDistance(p1, p1.minBBox)
+    return GetDistance(p1, p2) - (bbox1)
 end
 
 function ctype(t)
@@ -382,10 +389,11 @@ function print(...)
         else t[i] = _type
         end
     end
-    if len>0 then __PrintTextGame(table.concat(t)) end
+    if len>0 then __PrintTextGame(tostring(table.concat(t))) end
 end
 
 function ValidTarget(object, distance, enemyTeam)
+  if object == nil then return false end
     local enemyTeam = (enemyTeam ~= false)
 
 	if object ~= nil and _has_value({1,2,3}, object.Type) then
@@ -397,7 +405,7 @@ function ValidTarget(object, distance, enemyTeam)
 	end
 
 	-- 0=champ, 1=minion, 2=turret, 3=jungle, 4= Inhibitor, 5=Nexus, 6=Missile, -1= other
-	if object ~= nil and object.Type == 3 then enemyTeam = false end --for jungle
+	if object ~= nil and object.Type == 3 then enemyTeam = true end --for jungle
 	--[[if object then
 		print("3 " .. tostring(object.Type))
 		print("IsValid " .. tostring(object.IsValid))
@@ -408,19 +416,32 @@ function ValidTarget(object, distance, enemyTeam)
 		print("IsEnemy " .. tostring(object.IsEnemy))
 	end]]
 
-    return object ~= nil and object.IsValid and object.IsEnemy == enemyTeam and object.IsVisible and not object.IsDead and object.CanSelect and (enemyTeam == false or object.IsInvulnerable == false) and (distance == nil or GetDistanceSqr(object) <= distance * distance)
+    return object ~= nil and object.IsValid and (object.TeamId ~= player.TeamId) == enemyTeam and object.IsVisible and not object.IsDead and object.CanSelect and (enemyTeam == false or object.IsInvulnerable == false) and (distance == nil or GetDistanceSqr(object) <= distance * distance)
 end
---[[
+
 function ValidBBoxTarget(object, distance, enemyTeam)
     local enemyTeam = (enemyTeam ~= false)
-    return object ~= nil and object.valid and (object.team ~= player.team) == enemyTeam and object.visible and not object.dead and object.bTargetable and (enemyTeam == false or object.bInvulnerable == 0) and (distance == nil or GetDistanceBBox(object) <= distance)
+    
+    if object ~= nil and _has_value({1,2,3}, object.Type) then
+      object = GetUnit(object.Addr)
+    elseif object ~= nil and _has_value({0}, object.Type) then
+      object = GetAIHero(object.Addr)
+    elseif object ~= nil then
+      object.IsInvulnerable = false -- not sure
+    end
+
+  -- 0=champ, 1=minion, 2=turret, 3=jungle, 4= Inhibitor, 5=Nexus, 6=Missile, -1= other
+  if object ~= nil and object.Type == 3 then enemyTeam = true end --for jungle
+  
+    return object ~= nil and object.IsValid and (object.TeamId ~= player.TeamId) == enemyTeam and object.IsVisible and not object.IsDead and object.CanSelect and (enemyTeam == false or object.IsInvulnerable == false) and (distance == nil or GetDistanceBBox(object) <= distance)
 end
-]]
+
 function ValidTargetNear(object, distance, target)
     return object ~= nil and object.IsValid and object.TeamId == target.TeamId and object.NetworkId ~= target.NetworkId and object.IsVisible and not object.IsDead and object.CanSelect and GetDistanceSqr(target, object) <= distance * distance
 end
 
 function GetDistanceFromMouse(object)
+	local mousePos = Vector(GetMousePos())
     if object ~= nil and VectorType(object) then return GetDistance(object, mousePos) end
     return math.huge
 end
@@ -431,7 +452,7 @@ function GetEnemyHeroes()
     _enemyHeroes = {}
     for i = 1, heroManager.iCount do
         local hero = heroManager:GetHero(i)
-        if hero.EnemyId then
+        if hero.IsEnemy and hero.TeamId ~= myHero.TeamId then
             table.insert(_enemyHeroes, hero)
         end
     end
@@ -448,7 +469,7 @@ function GetAllyHeroes()
     _allyHeroes = {}
     for i = 1, heroManager.iCount do
         local hero = heroManager:GetHero(i)
-        if not hero.EnemyId and hero.NetworkId ~= player.NetworkId then
+        if not hero.IsEnemy and hero.TeamId == myHero.TeamId and hero.NetworkId ~= player.NetworkId then
             table.insert(_allyHeroes, hero)
         end
     end
@@ -622,7 +643,7 @@ function DelayAction(func, delay, args) --delay in seconds
             for t, funcs in pairs(delayedActions) do
                 if t <= os.clock() then
                     --for _, f in ipairs(funcs) do f.func(table.unpack(f.args or {})) end --lua 5.2
-					for _, f in ipairs(funcs) do f.func(unpack(f.args or {})) end --lua 5.1
+					          for _, f in ipairs(funcs) do f.func(unpack(f.args or {})) end --lua 5.1
                     delayedActions[t] = nil
                 end
             end
@@ -649,7 +670,7 @@ function SetInterval(userFunction, timeout, count, params)
 end
 
 function GetHeroLeveled()
-    return player.Level
+    return myHero.LevelSpell(_Q) + myHero.LevelSpell(_W) + myHero.LevelSpell(_E) + myHero.LevelSpell(_R)
 end
 --[[
 -- return the target particle
@@ -684,8 +705,8 @@ function CountEnemyHeroInRange(range, object)
     object = object or myHero
     range = range and range * range or myHero.AARange * myHero.AARange
     local enemyInRange = 0
-   	for i = 1, heroManager.iCount, 1 do
-        local hero = heroManager:getHero(i)
+   	for i = 1, heroManager.iCount do
+        local hero = heroManager:GetHero(i)
         if ValidTarget(hero) and GetDistanceSqr(object, hero) <= range then
             enemyInRange = enemyInRange + 1
         end
@@ -814,7 +835,6 @@ function Vector:__init(a, b, c)
         if b and type(b) == "number" then self.y = b end
         if c and type(c) == "number" then self.z = c end
     end
-
 
 end
 
@@ -1053,6 +1073,14 @@ function Vector:perpendicular2()
     return Vector(self.z, self.y, -self.x)
 end
 
+function D3DXVECTOR2(x,y)
+  return Vector(x,y,nil)
+end
+
+function D3DXVECTOR3(x,y,z)
+  return Vector(x,y,z)
+end
+
 --[[
     Class: Queue
     Performance optimized implementation of a queue, much faster as if you use table.insert and table.remove
@@ -1187,7 +1215,6 @@ MINION_SORT_MAXHEALTH_DEC = function(a, b) return a.MaxHP > b.MaxHP end
 MINION_SORT_AD_ASC = function(a, b) return a.TotalDmg < b.TotalDmg end
 MINION_SORT_AD_DEC = function(a, b) return a.TotalDmg > b.TotalDmg end
 
-
 local __minionManager__OnCreateObj
 local function minionManager__OnLoad()
     if _minionManager.init then
@@ -1203,14 +1230,15 @@ local function minionManager__OnLoad()
             function __minionManager__OnCreateObj(object)
                 if object and object.IsValid and _has_value({1,3},object.Type) then
                     DelayAction(function(object)
+                      
                         if object and object.IsValid and _has_value({1,3},object.Type) --[["obj_AI_Minion"]] and object.IsVisible and not object.IsDead then
                             --local name = object.name
                             --table.insert(_minionTable[MINION_ALL], object)
-							if not object.IsEnemy and object.Type == 1 then table.insert(_minionTable[MINION_ALLY], object)
-							elseif object.IsEnemy and object.Type == 1 then table.insert(_minionTable[MINION_ENEMY], object)
-							elseif object.Type == 3 then table.insert(_minionTable[MINION_JUNGLE], object)
-							else table.insert(_minionTable[MINION_OTHER], object)
-							end
+            							if not object.IsEnemy and object.Type == 1 then table.insert(_minionTable[MINION_ALLY], object)
+            							elseif object.IsEnemy and object.Type == 1 then table.insert(_minionTable[MINION_ENEMY], object)
+            							elseif object.Type == 3 then table.insert(_minionTable[MINION_JUNGLE], object)
+            							else table.insert(_minionTable[MINION_OTHER], object)
+            							end
                         end
                     end, 0, { object })
                 end
@@ -1225,15 +1253,15 @@ local function minionManager__OnLoad()
     end
 end
 
-function __minionManager__OnCreateObj2(object)
+function __minionManager__OnCreateObj2(object, mode)
 	if object and object.IsValid and _has_value({1,3},object.Type) then
 			if object and object.IsValid and _has_value({1,3},object.Type) --[["obj_AI_Minion"]] and object.IsVisible and not object.IsDead then
 				--local name = object.name
 				--table.insert(_minionTable[MINION_ALL], object)
-				if not object.IsEnemy and object.Type == 1 then table.insert(_minionTable[MINION_ALLY], object)
-				elseif object.IsEnemy and object.Type == 1 then table.insert(_minionTable[MINION_ENEMY], object)
-				elseif object.Type == 3 then table.insert(_minionTable[MINION_JUNGLE], object)
-				else table.insert(_minionTable[MINION_OTHER], object)
+				if not object.IsEnemy and object.Type == 1 and mode == MINION_ALLY then table.insert(_minionTable[MINION_ALLY], object)
+				elseif object.IsEnemy and object.Type == 1 and mode == MINION_ENEMY then table.insert(_minionTable[MINION_ENEMY], object)
+				elseif object.Type == 3 and mode == MINION_JUNGLE then table.insert(_minionTable[MINION_JUNGLE], object)
+				elseif mode == MINION_OTHER then table.insert(_minionTable[MINION_OTHER], object)
 				end
 			end
 	end
@@ -1253,29 +1281,28 @@ function minionManager:__init(mode, range, fromPos, sortMode)
     self.objects = {}
     self.iCount = 0
     self:update()
-
+    
 	return self
 end
 
 function minionManager:update()
 	self.fromPos = player
-    self.objects = {}
-
+  self.objects = {}
+  
 	_minionTable[self.mode] = {}
-	objManager:update()
+	--objManager:update()
+	--print("maxObjects=" .. tostring(objManager.maxObjects))
 	for i = 1, objManager.maxObjects do
-		__minionManager__OnCreateObj2(objManager:getObject(i))
+		__minionManager__OnCreateObj2(objManager:getObject(i), self.mode)
 	end
 
-	--print(tostring(objManager.maxObjects))
-
-    for _, object in pairs(_minionTable[self.mode]) do
-        if object and object.IsValid and not object.IsDead and object.IsVisible and GetDistanceSqr(self.fromPos, object) <= (self.range) ^ 2 then
-            table.insert(self.objects, object)
-        end
-    end
-    if self.sortMode then table.sort(self.objects, self.sortMode) end
-    self.iCount = #self.objects
+  for _, object in pairs(_minionTable[self.mode]) do
+      if object and object.IsValid and not object.IsDead and object.IsVisible and GetDistanceSqr(self.fromPos, object) <= (self.range) ^ 2 then
+          table.insert(self.objects, object)
+      end
+  end
+  if self.sortMode then table.sort(self.objects, self.sortMode) end
+  self.iCount = #self.objects
 end
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1376,7 +1403,7 @@ function MEC:ConvexHull()
     local upper, lower, ret = {}, {}, {}
     -- Partition remaining points into upper and lower buckets.
     for i = 2, #self.points - 1 do
-        if VectorType(self.points[i]) == false then PrintChat("self.points[i]") end
+        if VectorType(self.points[i]) == false then print("self.points[i]") end
         table.insert((VectorDirection(left, right, self.points[i]) < 0 and upper or lower), self.points[i])
     end
     local upperHull = self:HalfHull(left, right, upper, -1)
@@ -1602,7 +1629,7 @@ function WayPointManager:__init()
         WayPoints = {}
         WayPointRate = {}
         for i = 1, heroManager.iCount do
-            local hero = heroManager:getHero(i)
+            local hero = heroManager:GetHero(i)
             if hero ~= nil and hero.IsValid and hero.NetworkId and hero.NetworkId ~= 0 then
                 WayPointRate[hero.NetworkId] = Queue()
             end
@@ -1611,6 +1638,7 @@ function WayPointManager:__init()
         if AddTickWayPointsCallback then
             AddDeleteObjCallback(WayPointManager_OnDeleteObject)
             AddTickWayPointsCallback(WayPointManager_OnTick)
+            
             --AdvancedCallback:bind('OnLoseVision', function(hero) if hero.valid and hero.networkID == hero.networkID and hero.networkID ~= 0 then WayPointVisibility[hero.networkID] = os.clock() end end)
             --AdvancedCallback:bind('OnGainVision', function(hero) if hero.valid and hero.networkID == hero.networkID and hero.networkID ~= 0 then WayPointVisibility[hero.networkID] = nil end end)
             --AdvancedCallback:bind('OnFinishRecall', function(hero) if hero.valid and hero.team == TEAM_ENEMY and hero.networkID == hero.networkID and hero.networkID ~= 0 then WayPoints[hero.networkID] = { { x = GetEnemySpawnPos().x, y = GetEnemySpawnPos().z } } WayPointVisibility[hero.networkID] = nil end end)
@@ -1780,23 +1808,77 @@ function UnderTurret(pos, enemyTurret)
     return false
 end
 
---------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-function GetTarget(Range)
-  for i, h in pairs(GetAllyHeroes()) do
-    if ValidTarget(h,range,true) then
-      return h
+--  autoLevel
+--[[
+autoLevelSetSequence(sequence)  -- set the sequence
+autoLevelSetFunction(func)      -- set the function used if sequence level == 0
+    Usage :
+        On your script :
+        Set the levelSequence :
+            local levelSequence = {1,nil,0,1,1,4,1,nil,1,nil,4,nil,nil,nil,nil,4,nil,nil}
+            autoLevelSetSequence(levelSequence)
+                The levelSequence is table of 18 fields
+                1-4 = spell 1 to 4
+                nil = will not auto level on this one
+                0 = will use your own function for this one, that return a number between 1-4
+        Set the function if you use 0, example :
+            local onChoiceFunction = function()
+                if player:GetSpellData(SPELL_2).level < player:GetSpellData(SPELL_3).level then
+                    return 2
+                else
+                    return 3
+                end
+            end
+            autoLevelSetFunction(onChoiceFunction)
+]]
+local _autoLevel = { spellsSlots = { SPELL_1, SPELL_2, SPELL_3, SPELL_4 }, levelSequence = {}, nextUpdate = 0, tickUpdate = 500 }
+local __autoLevel__OnTick
+local function autoLevel__OnLoad()
+    if not __autoLevel__OnTick then
+        function __autoLevel__OnTick()
+            local tick = GetTickCount()
+            if _autoLevel.nextUpdate > tick then return end
+            _autoLevel.nextUpdate = tick + _autoLevel.tickUpdate
+            local realLevel = GetHeroLeveled()
+            if player.Level > realLevel and _autoLevel.levelSequence[realLevel + 1] ~= nil then
+                local splell = _autoLevel.levelSequence[realLevel + 1]
+                if splell == 0 and type(_autoLevel.onChoiceFunction) == "function" then splell = _autoLevel.onChoiceFunction() end
+                if type(splell) == "number" and splell >= 1 and splell <= 4 then UpSpellLevel(_autoLevel.spellsSlots[splell] - 1) end
+            end
+        end
+
+        AddTickCallback(__autoLevel__OnTick)
     end
-  end
 end
+
+function autoLevelSetSequence(sequence)
+    assert(sequence == nil or type(sequence) == "table", "autoLevelSetSequence : wrong argument types (<table> or nil expected)")
+    autoLevel__OnLoad()
+    local sequence = sequence or {}
+    for i = 1, 18 do
+        local spell = sequence[i]
+        if type(spell) == "number" and spell >= 0 and spell <= 4 then
+            _autoLevel.levelSequence[i] = spell
+        else
+            _autoLevel.levelSequence[i] = nil
+        end
+    end
+end
+
+function autoLevelSetFunction(func)
+    assert(func == nil or type(func) == "function", "autoLevelSetFunction : wrong argument types (<function> or nil expected)")
+    autoLevel__OnLoad()
+    _autoLevel.onChoiceFunction = func
+end
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 function GetTargetFromTargetId(targetid)
 	player = GetMyHero()
-
 	GetAllObjectAroundAnObject(myHero.Addr, 3000)
-
 	-- 0=champ, 1=minion, 2=turret, 3=jungle, 4= Inhibitor, 5=Nexus, 6=Missile, -1= other
-
 	for i, obj in pairs(pObject) do
 		if obj ~= 0 then
 			local object = nil
@@ -1825,3 +1907,8 @@ function GetTargetFromTargetId(targetid)
 
 	return nil
 end
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+

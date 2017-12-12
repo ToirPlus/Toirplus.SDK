@@ -5,31 +5,31 @@ https://github.com/Hellsing/BoL/blob/master/common/VPrediction.lua
 --IncludeFile("AllClass.lua")
 
 
-local minionTar = {}
+--minionTar = {}
+--
+--function GetAggro(unit)
+--    if unit.spell and unit.spell.target then
+--        return unit.spell.target
+--    else
+--        return minionTar[unit.NetworkId] and minionTar[unit.NetworkId] or nil
+--    end
+-- --[[ if canPackets then
+--        return type(unit) == "number" and missileTarget[unit] or missileTarget[unit.networkID]
+--    else
+--        return minionTar[unit.networkID] and minionTar[unit.networkID] or nil
+--    end]]
+--end
 
-function GetAggro(unit)
-    if unit.spell and unit.spell.target then
-        return unit.spell.target
-    else
-        return minionTar[unit.NetworkId] and minionTar[unit.NetworkId] or nil
-    end
- --[[ if canPackets then
-        return type(unit) == "number" and missileTarget[unit] or missileTarget[unit.networkID]
-    else
-        return minionTar[unit.networkID] and minionTar[unit.networkID] or nil
-    end]]
-end
-
-BUFF_STUN, BUFF_ROOT, BUFF_KNOCKUP, BUFF_SUPPRESS, BUFF_SLOW, BUFF_CHARM, BUFF_FEAR, BUFF_TAUNT, BUFF_KNOCKBACK = 5, 11, 29, 24, 10, 22, 21, 8, 30
+BUFF_STUN, BUFF_ROOT, BUFF_KNOCKUP, BUFF_SUPPRESS, BUFF_SLOW, BUFF_CHARM, BUFF_FEAR, BUFF_TAUNT, BUFF_KNOCKBACK = 5, -1, 29, 24, 10, 21, 8, 30
 
 local _FAST, _MEDIUM, _SLOW = 1, 2, 3
 
-local PA = {}
-
-for i, champ in pairs(GetEnemyHeroes()) do
-    PA[champ.NetworkId] = {}
-end
-PA[myHero.NetworkId] = {}
+--local PA = {}
+--
+--for i, champ in pairs(GetEnemyHeroes()) do
+--    PA[champ.NetworkId] = {}
+--end
+--PA[myHero.NetworkId] = {}
 
 --class 'VPrediction' --{
 
@@ -48,6 +48,8 @@ function VPrediction:__init()
 	self.nohitboxmode = false
 	self.DontUseWayPoints = false
 	self.ShotAtMaxRange = true
+
+	self.ChampionCollision = true
 
 	--[[if not _G.VPredictionMenu then
 		_G.VPredictionMenu = scriptConfig("VPrediction", "VPrediction")
@@ -106,9 +108,9 @@ function VPrediction:__init()
 	AddProcessSpellCallback(function(unit, spell) self:CollisionProcessSpell(unit, spell) end)
 ]]
 
+--AddAnimationCallback(function(unit, action) self:Animation(unit, action) end)
 	AddUpdateBuffCallback(function(unit, buff) self:OnGainBuff(unit, buff) end)
 	AddTickCallback(function() self:OnTick() end)
-	AddAnimationCallback(function(unit, action) self:Animation(unit, action) end)
 	AddProcessSpellCallback(function(unit, spell) self:OnProcessSpell(unit, spell) end)
 	AddProcessSpellCallback(function(unit, spell) self:CollisionProcessSpell(unit, spell) end)
 
@@ -213,7 +215,7 @@ function VPrediction:OnGainBuff(unit, buff)
 end
 ----------------------------------------------------------------
 function VPrediction:OnProcessSpell(unit, spell)
-	if unit and unit.Type == myHero.Type then
+	if unit and unit.Type == myHero.Type and spell then
 		for i, s in ipairs(self.spells) do
 			if spell.Name:lower() == s.name then
 				self.TargetsImmobile[unit.NetworkId] = self:GetTime() +s.duration
@@ -435,8 +437,8 @@ function VPrediction:GetCurrentWayPoints(object)
 end
 
 --[[Calculate the hero position based on the last waypoints]]
-function VPrediction:CalculateTargetPosition(unit, delay, radius, speed, from, spelltype, second)
-    if unit.Type == myHero.Type and unit.TeamId ~= myHero.TeamId or unit == myHero then
+function VPrediction:CalculateTargetPosition2(unit, delay, radius, speed, from, spelltype, second)
+    if unit.Type == myHero.Type and (unit.TeamId ~= myHero.TeamId or unit == myHero) then
         --print(unit.charName.." "..#PA[unit.networkID])
         if #PA[unit.NetworkId] > 4 then
             return Vector(unit), Vector(unit)
@@ -447,32 +449,35 @@ function VPrediction:CalculateTargetPosition(unit, delay, radius, speed, from, s
 
     end
     local spot
-    unit.endPath = {x=unit.DestPos_x,y=unit.DestPos_y,z=unit.DestPos_z}
-    unit.pos = {x=unit.x,y=unit.y,z=unit.z}
+    if unit.PathCount then
+      local x,y,z = unit.GetPath(unit.PathCount - 1)
+      unit.endPath = Vector(unit.GetPath(unit.PathCount - 1))
+    else
+      unit.endPath = Vector(unit)
+    end
+    
+    unit.pos = Vector(unit)
     if ValidTarget(unit) and unit.endPath or unit == myHero then    ---- FIX
         local p90x = second and second or unit
         local pathPot = (unit.MoveSpeed*((GetDistance(myHero, p90x)/speed)+delay))
 
-		if unit.Type == 1 or unit.Type == 3 then
-			unit.PathCount = 1
-		end
         if unit.PathCount < 3 then
             local v = Vector(unit) + (Vector(unit.endPath)-Vector(unit)):normalized()*(pathPot - unit.CollisionRadius+10)
             if GetDistance(unit, v) > 1 then
                 if GetDistance(unit.endPath, unit) >= GetDistance(unit, v) then
                     spot = v
                 else
-                    spot = Vector(unit.endPath)
+                    spot = unit.endPath
                 end
             else
-                spot = Vector(unit.endPath)
+                spot = unit.endPath
             end
         else
             unit.pathIndex = 1 --check again
             for i = unit.pathIndex, unit.PathCount do
                 if unit.GetPath(i) and unit.GetPath(i-1) then
-                    local pStart = i == unit.pathIndex and unit.pos or unit.GetPath(i-1)
-                    local pEnd = unit.GetPath(i)
+                    local pStart = i == unit.pathIndex and unit.pos or Vector(unit.GetPath(i-1))
+                    local pEnd = Vector(unit.GetPath(i))
                     local iPathDist = GetDistance(pStart, pEnd)
                     if unit.GetPath(unit.pathIndex  - 1) then
                         if pathPot > iPathDist then
@@ -488,9 +493,9 @@ function VPrediction:CalculateTargetPosition(unit, delay, radius, speed, from, s
                         end
                     end
                 end
-            end
+            end            
             if GetDistance(unit, unit.endPath) > unit.CollisionRadius then
-                spot = Vector(unit.endPath)
+                spot = unit.endPath
             else
                 spot = Vector(unit)
             end
@@ -502,6 +507,67 @@ function VPrediction:CalculateTargetPosition(unit, delay, radius, speed, from, s
     else
         return self:CalculateTargetPosition(unit, delay, radius, speed, from, spelltype, spot)
     end
+end
+
+function VPrediction:CalculateTargetPosition(unit, delay, radius, speed, from, spelltype)
+  
+  local Waypoints = {}
+  local Position, CastPosition = Vector(unit), Vector(unit)
+  local t
+
+  Waypoints = self:GetCurrentWayPoints(unit)
+  local Waypointslength = self:GetWaypointsLength(Waypoints)
+  if #Waypoints == 1 then
+    Position, CastPosition = Vector(Waypoints[1].x, 0, Waypoints[1].y), Vector(Waypoints[1].x, 0, Waypoints[1].y)
+    return Position, CastPosition
+  elseif (Waypointslength - delay * unit.MoveSpeed + radius) >= 0 then
+    local tA = 0
+    Waypoints = self:CutWaypoints(Waypoints, delay * unit.MoveSpeed - radius)
+    if speed ~= math.huge then
+      for i = 1, #Waypoints - 1 do
+        local A, B = Waypoints[i], Waypoints[i+1]
+        if i == #Waypoints - 1 then
+          B = Vector(B) + radius * Vector(B - A):normalized()
+        end
+        local t1, p1, t2, p2, D = VectorMovementCollision(A, B, unit.MoveSpeed, Vector(from.x, from.z), speed)
+        
+        local tB = tA + D / unit.MoveSpeed
+        t1, t2 = (t1 and tA <= t1 and t1 <= (tB - tA)) and t1 or nil, (t2 and tA <= t2 and t2 <= (tB - tA)) and t2 or nil
+        t = t1 and t2 and math.min(t1, t2) or t1 or t2
+        if t then
+          CastPosition = t==t1 and Vector(p1.x, 0, p1.y) or Vector(p2.x, 0, p2.y)
+          break
+        end
+        tA = tB
+      end
+    else
+      t = 0
+      CastPosition = Vector(Waypoints[1].x, 0, Waypoints[1].y)
+    end
+
+    if t then
+      if (self:GetWaypointsLength(Waypoints) - t * unit.MoveSpeed - radius) >= 0 then
+        Waypoints = self:CutWaypoints(Waypoints, radius + t * unit.MoveSpeed)
+        Position = Vector(Waypoints[1].x, 0, Waypoints[1].y)
+      else
+        Position = CastPosition
+      end
+      
+    elseif unit.Type ~= myHero.Type then
+      CastPosition = Vector(Waypoints[#Waypoints].x, 0, Waypoints[#Waypoints].y)
+      Position = CastPosition
+    end
+    
+  elseif unit.Type ~= myHero.Type then
+    CastPosition = Vector(Waypoints[#Waypoints].x, 0, Waypoints[#Waypoints].y)
+    Position = CastPosition
+  end
+
+  if t and self:isSlowed(unit, 0, math.huge, from) and not self:isSlowed(unit, t, math.huge, from) and Position then
+    CastPosition = Position
+  end
+
+  return Position, CastPosition
 end
 
 function VPrediction:MaxAngle(unit, currentwaypoint, from)
@@ -528,13 +594,10 @@ function VPrediction:WayPointAnalysis(unit, delay, radius, range, speed, from, s
     else
         HitChance = 1
     end
-
     Position, CastPosition = self:CalculateTargetPosition(unit, delay, radius, speed, from, spelltype)
-
     if self:CountWaypoints(unit.NetworkId, self:GetTime() - 0.1) >= 1 or self:CountWaypoints(unit.NetworkId, self:GetTime() - 1) == 1 then
         HitChance = 2
     end
-
     --local N = (_G.VPredictionMenu.Mode == _SLOW) and 3 or 2
     --local t1 = (_G.VPredictionMenu.Mode == _SLOW) and 1 or 0.5
     local N = 3
@@ -547,7 +610,6 @@ function VPrediction:WayPointAnalysis(unit, delay, radius, range, speed, from, s
             HitChance = 2
         end
     end
-
     --N = (_G.VPredictionMenu.Mode == _SLOW) and 2 or 1
     N = 2
     if self:CountWaypoints(unit.NetworkId, self:GetTime() - N) == 0 then
@@ -609,7 +671,6 @@ function VPrediction:GetBestCastPosition(unit, delay, radius, range, speed, from
     if from.NetworkId and from.NetworkId == myHero.NetworkId then
         from = Vector(myHero)
     end
-
 	local IsFromMyHero = GetDistanceSqr(from, myHero) < 50*50 and true or false
 
     delay = delay + (0.07 + GetLatency() / 2000)
@@ -623,6 +684,7 @@ function VPrediction:GetBestCastPosition(unit, delay, radius, range, speed, from
         Position, CastPosition = self:CalculateTargetPosition(unit, delay, radius, speed, from, spelltype)
         HitChance = 2
     else
+      
         if self.DontShoot[unit.NetworkId] and self.DontShoot[unit.NetworkId] > self:GetTime() then
             Position, CastPosition = Vector(unit),  Vector(unit)
             HitChance = 0
@@ -643,7 +705,6 @@ function VPrediction:GetBestCastPosition(unit, delay, radius, range, speed, from
             CastPosition, HitChance, Position = self:WayPointAnalysis(unit, delay, radius, range, speed, from, spelltype)
         end
     end
-
     --[[Out of range]]
     if IsFromMyHero then
         if (spelltype == "line" and GetDistanceSqr(from, Position) >= range * range) then
@@ -667,7 +728,6 @@ function VPrediction:GetBestCastPosition(unit, delay, radius, range, speed, from
     end
 
     radius = radius - self:GetHitBox(unit) + 4
-
     if collision and HitChance > 0 then
         self.EnemyMinions.range = range + 500 * (delay + range/speed)
         self.JungleMinions.range = self.EnemyMinions.range
@@ -716,7 +776,6 @@ function VPrediction:GetPredictedHealth(unit, time, delay)
         end
         i = i + 1
     end
-
     return unit.HP - IncDamage, MaxDamage, count
 end
 
@@ -765,24 +824,23 @@ function VPrediction:GetPredictedHealth2(unit, t)
     return unit.HP - damage
 end
 
-function VPrediction:Animation(unit, action)
-	if unit and _has_value({1,2,3}, unit.Type) then
-		unit = GetUnit(unit.Addr)
-	elseif unit and _has_value({0}, unit.Type) then
-		unit = GetAIHero(unit.Addr)
-	end
-
-    if unit and unit.IsValid and unit.Type ~= myHero.Type and unit.TeamId == myHero.TeamId and action:lower():find("atta") and not self.projectilespeeds[unit.CharName] then
-
-        local time = self:GetTime() + 0.393 - GetLatency()/2000
-
-        local tar = GetAggro(unit)
-        if tar then
-
-            table.insert(self.ActiveAttacks, {Attacker = unit, pos = Vector(unit), Target = tar, animationTime = math.huge, damage = unit.TotalDmg, hittime=time, starttime = self:GetTime() - GetLatency()/2000, windUpTime = 0.393, projectilespeed = math.huge})
-        end
-    end
-end
+--function VPrediction:Animation(unit, action)
+--	if unit and _has_value({1,2,3}, unit.Type) then
+--		unit = GetUnit(unit.Addr)
+--	elseif unit and _has_value({0}, unit.Type) then
+--		unit = GetAIHero(unit.Addr)
+--	end
+--
+--    if unit and unit.IsValid and unit.Type ~= myHero.Type and unit.TeamId == myHero.TeamId and action:lower():find("atta") and not self.projectilespeeds[unit.CharName] then
+--
+--        local time = self:GetTime() + 0.393 - GetLatency()/2000
+--
+--        local tar = GetAggro(unit)
+--        if tar then
+--            table.insert(self.ActiveAttacks, {Attacker = unit, pos = Vector(unit), Target = tar, animationTime = math.huge, damage = unit.TotalDmg, hittime=time, starttime = self:GetTime() - GetLatency()/2000, windUpTime = 0.393, projectilespeed = math.huge})
+--        end
+--    end
+--end
 
 function VPrediction:CollisionProcessSpell(unit, spell)
 	if unit and _has_value({1,2,3}, unit.Type) then
@@ -793,25 +851,20 @@ function VPrediction:CollisionProcessSpell(unit, spell)
     spell.target = GetTargetFromTargetId(spell.TargetId)
     if unit and unit.IsValid and spell.target and unit.Type ~= myHero.Type and (spell.target.Type == 1 or spell.target.Type == 3)--[['AIMinion']] and unit.TeamId == myHero.TeamId and spell and spell.Name and (spell.Name:lower():find("attack") or (spell.Name == "frostarrow")) and spell.Delay and spell.target then
         if GetDistanceSqr(unit) < 4000000 then
-            if self.projectilespeeds[unit.CharName] then
-                local time = self:GetTime() + GetDistance(spell.target, unit) / self:GetProjectileSpeed(unit) - GetLatency()/2000
-                local i = 1
-                while i <= #self.ActiveAttacks do
-                    if (self.ActiveAttacks[i].Attacker and self.ActiveAttacks[i].Attacker.valid and self.ActiveAttacks[i].Attacker.networkID == unit.NetworkId) or ((self.ActiveAttacks[i].hittime + 3) < self:GetTime()) then
-                        table.remove(self.ActiveAttacks, i)
-                    else
-                        i = i + 1
-                    end
-                end
+          local time = self:GetTime() + spell.Delay + GetDistance(spell.target, unit) / self:GetProjectileSpeed(unit) - GetLatency()/2000
+          local i = 1
+          while i <= #self.ActiveAttacks do
+              if (self.ActiveAttacks[i].Attacker and self.ActiveAttacks[i].Attacker.IsValid and self.ActiveAttacks[i].Attacker.NetworkId == unit.NetworkId) or ((self.ActiveAttacks[i].hittime + 3) < self:GetTime()) then
+                  table.remove(self.ActiveAttacks, i)
+              else
+                  i = i + 1
+              end
+          end
 
-                table.insert(self.ActiveAttacks, {Attacker = unit, pos = Vector(unit), Target = spell.target, animationTime = spell.AnimationTime, damage = self:CalcDamageOfAttack(unit, spell.target, spell, 0), hittime=time, starttime = self:GetTime() - GetLatency()/2000, windUpTime = 0, projectilespeed = self:GetProjectileSpeed(unit)})
-            else
-                minionTar[unit.NetworkId] = spell.target
-            end
+          table.insert(self.ActiveAttacks, {Attacker = unit, pos = Vector(unit), Target = spell.target, animationTime = spell.AnimationTime, damage = self:CalcDamageOfAttack(unit, spell.target, spell, 0), hittime=time, starttime = self:GetTime() - GetLatency()/2000, windUpTime = 0, projectilespeed = self:GetProjectileSpeed(unit)})
         end
     end
 end
-
 
 function VPrediction:CheckCol(unit, minion, Position, delay, radius, range, speed, from, draw)
     if unit.NetworkId == minion.NetworkId then
@@ -825,8 +878,7 @@ function VPrediction:CheckCol(unit, minion, Position, delay, radius, range, spee
 
     local waypoints = self:GetCurrentWayPoints(minion)
 
-    minion.pathCount = 1
-    local MPos, CastPosition = minion.pathCount == 1 and Vector(minion) or self:CalculateTargetPosition(minion, delay, radius, speed, from, "line")
+    local MPos, CastPosition = minion.PathCount == 1 and Vector(minion) or self:CalculateTargetPosition(minion, delay, radius, speed, from, "line")
     if GetDistanceSqr(from, MPos) <= (range)^2 and GetDistanceSqr(from, minion) <= (range + 100)^2 then
         --local buffer = (minion.pathCount > 1) and _G.VPredictionMenu.Collision.Buffer or 8
         local buffer = 8
@@ -838,14 +890,14 @@ function VPrediction:CheckCol(unit, minion, Position, delay, radius, range, spee
             DrawCircle3D(minion.x, myHero.y, minion.z, self:GetHitBox(minion) + buffer, 1, ARGB(255, 255, 255, 255))
             DrawCircle3D(MPos.x, myHero.y, MPos.z, self:GetHitBox(minion) + buffer, 1, ARGB(255, 255, 255, 255))
             self:DLine(MPos, minion, Color)
-        end
+        end]]
 
-        if minion.pathCount > 1 then
+        if minion.PathCount > 1 then
             local proj1, pointLine, isOnSegment = VectorPointProjectionOnLineSegment(from, Position, Vector(MPos))
             if isOnSegment and (GetDistanceSqr(MPos, proj1) <= (self:GetHitBox(minion) + radius + buffer) ^ 2) then
                 return true
             end
-        end]]
+        end
 
         local proj2, pointLine, isOnSegment = VectorPointProjectionOnLineSegment(from, Position, Vector(minion))
         if isOnSegment and (GetDistanceSqr(minion, proj2) <= (self:GetHitBox(minion) + radius + buffer) ^ 2) then
@@ -997,7 +1049,7 @@ function VPrediction:GetLineAOECastPosition(unit, delay, radius, range, speed, f
     local points = {}
     local Positions = {}
     local mainCastPosition, mainHitChance = CastPosition, HitChance
-
+    
     table.insert(Positions, {unit = unit, HitChance = HitChance, Position = Position, CastPosition = CastPosition})
     table.insert(points, Position)
 
@@ -1033,7 +1085,7 @@ function VPrediction:GetLineAOECastPosition(unit, delay, radius, range, speed, f
         local hitt = {}
         width = width + 2
         for i, point in ipairs(points) do
-            local pointSegment, pointLine, isOnSegment = VectorPointProjectionOnLineSegment(P1, P2, point)
+            local pointSegment, pointLine, isOnSegment = VectorPointProjectionOnLineSegment(P1, P2, point)            
             if isOnSegment and GetDistanceSqr(pointSegment, point) <= width * width then
                 hits = hits + 1
                 table.insert(hitt, point)
@@ -1244,10 +1296,10 @@ end
 
 function VPrediction:CalcDamageOfAttack(source, target, spell, additionalDamage)
     -- read initial armor and damage values
-    local armorPenPercent = 0 --source.armorPenPercent
+    local armorPenPercent = 1 --source.armorPenPercent
     local armorPen = source.ArmorPen
     local totalDamage = source.TotalDmg + (additionalDamage or 0)
-    local damageMultiplier = spell.name:find("CritAttack") and 2 or 1
+    local damageMultiplier = spell.Name:find("CritAttack") and 2 or 1
 
     -- minions give wrong values for armorPen and armorPenPercent
     if source.Type == 1 then
