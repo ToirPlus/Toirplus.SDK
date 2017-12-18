@@ -54,7 +54,7 @@ local function GetBonusAD(unit,factor) return (factor or 1) * unit.BonusDmg end
 local function GetPer100BonusAD(unit,factor) return (factor or 1) * (GetBonusAD(unit) / 100) end -- value / 100 * GetBonusAD(source)
 local function GetCurrentHP(unit,factor) return (factor or 1) * unit.HP end
 local function GetMaxHP(unit,factor) return (factor or 1) * unit.MaxHP end
-local function GetPercentHP(unit) return unit.MaxHP / unit.HP * 100 end
+local function GetPercentHP(unit) return unit.HP / unit.MaxHP end
 local function GetMissingHP(unit,factor) return (factor or 1) * (GetMaxHP(unit) - GetCurrentHP(unit)) end  -- GetMaxHP(unit) - GetCurrentHP(unit)) / GetMaxHP(unit)
 local function GetCurrentMana(unit,factor) return (factor or 1) * unit.MP end
 local function GetMaxMana(unit,factor) return (factor or 1) * unit.MaxMP end
@@ -504,7 +504,8 @@ local DamageLibTable = {
     {Slot = "Q", Stage = 1, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return ({80, 130, 180, 230, 280})[level] + GetAP(source,0.5) end},
     {Slot = "W", Stage = 1, DamageType = 2, SpellEffectType = 1, Damage = function(source, target, level) local dmg = (({0.03, 0.04, 0.05, 0.06, 0.07})[level] + GetPer100AP(source,0.01)) * GetMaxHP(target) ; if target.Type == 1 and dmg > 100 then dmg = 100 end ; return dmg end},
     {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({60, 105, 150, 195, 240})[level] + GetAP(source,0.5) end},
-    {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return (({100, 140, 180})[level] + GetBonusAD(source,0.65) + GetAP(source,0.25)) * (GetPercentHP(target) < 25 and 3 or (GetPercentHP(target) < 50 and 2 or 1)) end},
+    {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return (({100, 140, 180})[level] + GetBonusAD(source,0.65) + GetAP(source,0.25)) * (GetPercentHP(target) < 0.4 and 2 or ((1 - GetPercentHP(target)) * 0.83) + 1) end},
+
   },
 
   ["Leblanc"] = {
