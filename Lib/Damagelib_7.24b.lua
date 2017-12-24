@@ -41,6 +41,7 @@ IsApplyOnHit = true or nil
 
 
 - lfer
+unit.Type == 0=champ, 1=minion, 2=turret, 3=jungle, 4= Inhibitor, 5=Nexus, 6=Missile, -1= other
 target.Type == 1  target.Type == 1 and VAL1 or VAL2
 
 ]]
@@ -68,14 +69,14 @@ local function GetBaseMagicArmor(unit,factor) return (factor or 1) * (unit.Magic
 local function GetBonusCriticalDamage(unit,factor) return (factor or 1) * unit.BonusCriticalDamage end
 local function GetMoveSpeed(unit,factor) return (factor or 1) * unit.MoveSpeed end
 local function GetCastLevel(unit,slot) return unit.LevelSpell(slot) end -- unit:GetSpellData(slot) 
--- local funcion GEEEEEEEEEEEEEEEEEE return GetBuffStack(source or target.Addr, "stackname :^)") 
+-- local funcion T return GetBuffStack(source or target.Addr, "stackname :^)") 
 -- local function GetAttackSpeed(unit) return 1 / unit.CDBA end -- REAL AS
 
 local DamageLibTable = {
   ["Aatrox"] = {
-    {Slot = "Q", Stage = 1, SpellEffectType = 2, DamageType = 1, Damage = function(source, target, level) return ({10, 35, 60, 95, 120})[level] + GetAD(source,1.1) end},
+    {Slot = "Q", Stage = 1, SpellEffectType = 2, DamageType = 1, Damage = function(source, target, level) return ({20, 50, 80, 110, 1400})[level] + GetAD(source,1.1) end},
     {Slot = "W", Stage = 1, SpellEffectType = 0, DamageType = 1, Damage = function(source, target, level) return ({50, 85, 120, 155, 190})[level] + GetBonusAD(source,0.75) end},
-    {Slot = "E", Stage = 1, SpellEffectType = 2, DamageType = 1, Damage = function(source, target, level) return ({75, 115, 155, 195, 235})[level] + GetBonusAD(source,0.7) end},
+    {Slot = "E", Stage = 1, SpellEffectType = 2, DamageType = 1, Damage = function(source, target, level) return ({80, 120, 160, 200, 240})[level] + GetBonusAD(source,0.7) end},
     {Slot = "R", Stage = 1, SpellEffectType = 2, DamageType = 2, Damage = function(source, target, level) return ({200, 300, 400})[level] + GetAP(source) end},
   },
 
@@ -98,7 +99,7 @@ local DamageLibTable = {
   ["Alistar"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({60, 105, 150, 195, 240})[level] + GetAP(source,0.5) end},
     {Slot = "W", Stage = 1, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return ({55, 110, 165, 220, 275})[level] + GetAP(source,0.7) end},
-    {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({20, 25, 30, 35, 40})[level] + GetAp(source,0.4) end}, -- 1sec per dmg
+    {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({20, 25, 30, 35, 40})[level] + GetAP(source,0.4) end}, -- 1sec per dmg
   },
 
   ["Amumu"] = { -- fk amumu need passvie check >> target 10% magig true dmg 
@@ -261,7 +262,7 @@ local DamageLibTable = {
   },
 
   ["Ezreal"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, IsApplyOnHit = true, SpellEffectType = 3, Damage = function(source, target, level) return ({35, 55, 75, 95, 115})[level] + GetAP(source,0.4) + GetAD(source,1.25) end},
+    {Slot = "Q", Stage = 1, DamageType = 1, IsApplyOnHit = true, SpellEffectType = 3, Damage = function(source, target, level) return ({35, 55, 75, 95, 115})[level] + GetAP(source,0.4) + GetAD(source,1.1) end},
     {Slot = "W", Stage = 1, DamageType = 2, SpellEffectType = 5, Damage = function(source, target, level) return ({70, 115, 160, 205, 250})[level] + GetAP(source,0.8) end},
     {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return ({80, 130, 180, 230, 280})[level] + GetAP(source,0.75) + GetBonusAD(source.5) end},
     {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 5, Damage = function(source, target, level) return ({350, 500, 650})[level] + GetAP(source,0.9) + GetAD(source) end},
@@ -291,8 +292,9 @@ local DamageLibTable = {
   },
 
   ["Galio"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, SpellEffectType = 5, Damage = function(source, target, level) return ({50, 80, 110, 140, 170})[level] + GetAP(source,0.8) end},
-    {Slot = "Q", Stage = 4, DamageType = 2, SpellEffectType = 4, Damage = function(source, target, level) return ({10, 13.3, 16.7, 20, 23.3})[level] + GetAP(source,0.2) + GetMaxHP(target,GetPer100AP(source,0.03))  end},
+    {Slot = "Q", Stage = 1, DamageType = 2, SpellEffectType = 5, Damage = function(source, target, level) return ({50, 80, 110, 140, 170})[level] + GetAP(source,0.9) end},
+    {Slot = "Q", Stage = 4, DamageType = 2, SpellEffectType = 4, Damage = function(source, target, level) return ({10, 13.3, 16.7, 20, 23.3})[level] + GetAP(source,0.2) + GetMaxHP(target,GetPer100AP(source,0.03)) end},
+    {Slot = "W", Stage = 1, DamageType = 2, SpellEffectType = 5, Damage = function(source, target, level) return ({20, 30, 40, 50, 60})[level] + GetAP(source,0.2) end},
     {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 5, Damage = function(source, target, level) return ({100, 130, 160, 190, 220})[level] + GetAP(source,0.9) end},
     {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({150, 250, 350})[level] + GetAP(source,0.7) end},
   },
@@ -377,7 +379,7 @@ local DamageLibTable = {
   },
 
   ["JarvanIV"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, SpellEffectType = 5, Damage = function(source, target, level) return ({80, 125, 170, 215, 260})[level] + GetBonusAD(source,1.2) end},
+    {Slot = "Q", Stage = 1, DamageType = 1, SpellEffectType = 5, Damage = function(source, target, level) return ({80, 120, 160, 200, 240})[level] + GetBonusAD(source,1.2) end},
     {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({60, 105, 150, 195, 240})[level] + GetAD(source,0.8) end},
     {Slot = "R", Stage = 1, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({200, 325, 450})[level] + GetBonusAD(source,1.5) end},
   },
@@ -391,7 +393,7 @@ local DamageLibTable = {
 
   ["Jayce"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({45, 80, 115, 150, 185, 220})[level] + GetBonusAD(source,1.2) end},
-    {Slot = "Q", Stage = 5, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({80, 130, 180, 230, 280, 330})[level] + GetBonusAD(source,1.2) end},
+    {Slot = "Q", Stage = 5, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({70, 120, 170, 220, 270, 320})[level] + GetBonusAD(source,1.2) end},
     {Slot = "Q", Stage = 15, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({98, 168, 238, 308, 378, 448})[level] + GetBonusAD(source,1.68) end},
     {Slot = "W", Stage = 1, DamageType = 2, SpellEffectType = 4, Damage = function(source, target, level) return ({25, 40, 55, 70, 85, 100})[level] + GetAP(source,0.25) end},
     {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return GetMaxHP(target,(({0.08, 0.104, 0.128, 0.152, 0.176, 0.2})[level]) + GetBonusAD(source) end},
@@ -432,7 +434,7 @@ local DamageLibTable = {
   ["Karthus"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return (({40, 60, 80, 100, 120})[level] + GetAP(source,0.3) end}, -- AOE / single target*2   
     {Slot = "E", Stage = 4, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({30, 50, 70, 90, 110})[level] + GetAP(source,0.2) end},
-    {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return ({250, 400, 550})[level] + GetAP(source,0.6) end},
+    {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return ({250, 400, 550})[level] + GetAP(source,0.75) end},
   },
 
   ["Kassadin"] = {
@@ -456,9 +458,9 @@ local DamageLibTable = {
   },
 
   ["Kayn"] = {
-  {Slot = "Q", Stage = 1, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({55, 75, 95, 115, 135})[level] + GetBonusAD(source,0.65) end},
-  {Slot = "Q", Stage = 5, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({55, 75, 95, 115, 135})[level] + GetBonusAD(source,0.65) end},
-  {Slot = "Q", Stage = 6, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({200, 250, 300, 350, 400})[level] + GetBonusAD(source,0.5) + GetMaxHP(target,0.05+GetPer100AD(source,0.04)) end},
+    {Slot = "Q", Stage = 1, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({55, 75, 95, 115, 135})[level] + GetBonusAD(source,0.65) end},
+    {Slot = "Q", Stage = 5, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({55, 75, 95, 115, 135})[level] + GetBonusAD(source,0.65) end},
+    {Slot = "Q", Stage = 6, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({200, 250, 300, 350, 400})[level] + GetBonusAD(source,0.5) + GetMaxHP(target,0.05+GetPer100AD(source,0.04)) end},
     {Slot = "W", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({80, 125, 170, 215, 260})[level] + GetBonusAD(source,1.2) end},
     {Slot = "W", Stage = 5, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({80, 125, 170, 215, 260})[level] + GetBonusAD(source,1.3) end},
     {Slot = "W", Stage = 6, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({80, 125, 170, 215, 260})[level] + GetBonusAD(source,1.2) end},
@@ -496,7 +498,7 @@ local DamageLibTable = {
     {Slot = "Q", Stage = 3, DamageType = 1, SpellEffectType = 1, Damage = function(source, target, level) return ({60, 110, 160, 210, 260})[level] + GetBonusAD(source,1.2) end},
     {Slot = "Q", Stage = 5, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({35, 50, 65, 80, 95})[level] + GetBonusAD(source,0.8) end},
     {Slot = "W", Stage = 1, DamageType = 1, SpellEffectType = 1, Damage = function(source, target, level) return ({20, 30, 40, 50, 60})[level] + GetMaxHP(target,({0.045, 0.05, 0.055, 0.06, 0.065})[level] + (GetBonusAD(source) / 20) / 100) end},
-    {Slot = "E", Stage = 1, DamageType = 1, SpellEffectType = 5, Damage = function(source, target, level) return ({25, 50, 75, 100, 125})[level] + GetBonusAD(source,0.6) end},
+    {Slot = "E", Stage = 1, DamageType = 1, SpellEffectType = 5, Damage = function(source, target, level) return ({35, 60, 85, 11-, 135})[level] + GetBonusAD(source,0.6) end},
     {Slot = "R", Stage = 1, DamageType = 1, SpellEffectType = 3, Damage = function(source, target, level) return GetMaxHP(target,({0.12, 0.15, 0.18})[level] + GetPer100BonusAD(source,0.12)) end},
   } 
 
@@ -918,8 +920,167 @@ local DamageLibTable = {
   },
 
   ["Twitch"] = {
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (GetBuffStack(target.Addr, "twitchdeadlyvenom") * ({15, 20, 25, 30, 35})[level] + GetAP(source,0.2) + GetBonusAD(source,0.25) + ({20, 35, 50, 65, 80})[level] end},
-    {Slot = "E", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({15, 20, 25, 30, 35})[level] + GetAP(source,0.2) + GetBonusAD(source,0.25) + ({20, 35, 50, 65, 80})[level] end},
+    {Slot = "E", Stage = 1, DamageType = 1, SpellEffectType = 1, Damage = function(source, target, level) return (GetBuffStack(target.Addr, "twitchdeadlyvenom") * ({15, 20, 25, 30, 35})[level] + GetAP(source,0.2) + GetBonusAD(source,0.25) + ({20, 35, 50, 65, 80})[level] end},
+    --{Slot = "E", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({15, 20, 25, 30, 35})[level] + GetAP(source,0.2) + GetBonusAD(source,0.25) + ({20, 35, 50, 65, 80})[level] end},
   },
+
+  ["Udyr"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, IsApplyOnHit = true, SpellEffectType = 1, Damage = function(source, target, level) return ({30, 60, 90, 120, 150})[level] + GetAD(source,({1.2, 1.35, 1.5, 1.65, 1.8})[level]) end},
+    {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({40, 80, 120, 160, 200})[level] + GetAP(source,0.6) end},
+    {Slot = "R", Stage = 4, DamageType = 2, SpellEffectType = 4, Damage = function(source, target, level) return ({10, 20, 30, 40, 50})[level] + GetAP(source,0.25) end},
+  },
+
+  ["Urgot"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, SpellEffectType = 3, Damage = function(source, target, level) return ({10, 40, 70, 100, 130})[level] + GetAD(source,0.85) end},
+    {Slot = "E", Stage = 1, DamageType = 1, SpellEffectType = 4, Damage = function(source, target, level) return ({15, 26, 37, 48, 59})[level] + GetBonusAD(source,0.12) end},
+  },
+
+  ["Varus"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({3.3, 15.6, 27.8, 40, 52.2})[level] + GetAD(source,0.33) end},
+    {Slot = "Q", Stage = 12, DamageType = 2, SpellEffectType = 1, Damage = function(source, target, level) return GetMaxHP(target,({0.02, 0.0275, 0.035, 0.0425, 0.05})[level] + GetPer100AP(source,0.02)) * (GetBuffStack(target.Addr, "VarusWDebuff")) end},
+    {Slot = "W", Stage = 1, DamageType = 2, SpellEffectType 1=, Damage = function(source, target, level) return ({10, 14, 18, 22, 26})[level] + GetAP(source,0.25) end},
+    {Slot = "E", Stage = 1, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({70, 105, 140, 175, 210})[level] + GetBonusAD(source,0.6) end},
+    {Slot = "E", Stage = 12, DamageType = 2, SpellEffectType = 1, Damage = function(source, target, level) return GetMaxHP(target,({0.02, 0.0275, 0.035, 0.0425, 0.05})[level] + GetPer100AP(source,0.02)) * (GetBuffStack(target.Addr, "VarusWDebuff")) end},
+    {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType =2, Damage = function(source, target, level) return ({100, 175, 250})[level] + GetAP(source,1) end},
+    {Slot = "R", Stage = 12, DamageType = 2, SpellEffectType = 1, Damage = function(source, target, level) return GetMaxHP(target,({0.02, 0.0275, 0.035, 0.0425, 0.05})[level] + GetPer100AP(source,0.02)) * (GetBuffStack(target.Addr, "VarusWDebuff")) end},
+  },
+
+  ["Vayne"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, IsApplyOnHit = true, SpellEffectType = 1, Damage = function(source, target, level) return GetAD(source,({0.5, 0.55, 0.6, 0.65, 0.75})[level]) end},
+    {Slot = "W", Stage = 1, DamageType = 3, SpellEffectType = 1, Damage = function(source, target, level) return math.max(({50, 65, 80, 95, 110})[level],GetMaxHP(target,({0.04, 0.06, 0.08, 0.1, 0.12})[level])) end},
+    {Slot = "E", Stage = 1, DamageType = 1, SpellEffectType = 3, Damage = function(source, target, level) return ({50, 85, 120, 155, 190})[level] + GetBonusAD(source,0.5) end},
+    {Slot = "E", Stage = 14, DamageType = 1, SpellEffectType = 3, Damage = function(source, target, level) return ({45, 80, 115, 150, 185})[level] + GetBonusAD(source,0.5) end},
+  },
+
+  ["Veigar"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return ({70, 110, 150, 190, 230})[level] + GetAP(source,0.6) end},
+    {Slot = "W", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({100, 150, 200, 250, 300})[level] + GetAp(source,1) end},
+    {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return ({175, 250, 325})[level] + GetAP(source,0.75) + GetMissingHP(target,0.015) end},
+  },
+
+  ["Velkoz"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({80, 120, 160, 200, 240})[level] + GetAP(source,0.6) end},
+    {Slot = "W", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({30, 50, 70, 90, 110})[level] + GetAP(source,0.15) end},
+    {Slot = "W", Stage = 3, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({45, 75, 105, 135, 165})[level] + GetAP(source,0.25) end},
+    {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({70, 100, 130, 160, 190})[level] + GetAP(source,0.3) end},
+    {Slot = "R", Stage = 1, DamageType = 3, SpellEffectType = 2, Damage = function(source, target, level) return (GetBuffStack(target.Addr, "velkozresearchedstack") > 0 and ({450, 625, 800})[level] + GetAP(source,1.25) or CalcMagicalDamage(source, target, ({450, 625, 800})[level] + GetAP(source,1.25)) end},
+  },
+
+  ["Vi"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({55, 80, 105, 130, 155})[level] + GetBonusAD(source,0.8) end},
+    {Slot = "Q", Stage = 9, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({40, 60, 80, 100, 1200})[level] + GetBonusAD(source,0.6) end},
+    {Slot = "W", Stage = 1, DamageType = 1, IsApplyOnHit = true, SpellEffectType = 1, Damage = function(source, target, level) return GetMaxHP(source,({0.04, 0.055, 0.07, 0.085, 0.1})[level]) end},
+    {Slot = "E", Stage = 1, DamageType = 1, SpellEffectType = 1, Damage = function(source, target, level) return ({10, 30, 50, 70, 90})[level] + GetAD(source,1.15) + GetAP(source,0.7) end},
+    {Slot = "E", Stage = 13, DamageType = 1, SpellEffectType = 1, Damage = function(source, target, level) return ({10, 30, 50, 70, 90})[level] + GetAD(source,1.15) + GetAP(source,0.7) end},
+    {Slot = "R", Stage = 1, DamageType = 1, SpellEffectType = 3, Damage = function(source, target, level) return ({150, 300, 450})[level] + GetAP(source,1.4) end},
+    {Slot = "R", Stage = 13, DamageType = 1, SpellEffectType = 3, Damage = function(source, target, level) return ({117.5, 243.75, 337.5})[level] + GetAP(source,1.05) end},
+  },
+
+  ["Viktor"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return ({60, 80, 100, 120, 140})[level] + GetAP(source,0.4) end},
+    {Slot = "Q", Stage = 5, DamageType = 2, SpellEffectType = 1, Damage = function(source, target, level) return ({20, 40, 60, 80, 100})[level] + GetAP(source,0.5) end},
+    {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({70, 110, 150, 190, 230})[level] + GetAP(source,0.5) end},
+    {Slot = "E", Stage = 3, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({20, 60, 100, 140, 180})[level] + GetAP(source,0.7) end},
+    {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({100, 175, 250})[level] + GetAP(source,0.5) end},
+    {Slot = "R", Stage = 4, DamageType = 2, SpellEffectType = 4, Damage = function(source, target, level) return ({150, 250, 350})[level] + GetAP(source,0.6) end},
+  },
+
+  ["Vladimir"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, SpellEffectType = 1, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + GetAP(source,0.6) end},
+    {Slot = "Q", Stage = 15, DamageType = 2, SpellEffectType = 1, Damage = function(source, target, level) return ({148, 185, 220, 259, 296})[level] + GetAP(source,1.1) end},
+    {Slot = "W", Stage = 1, DamageType = 2, SpellEffectType = 4, Damage = function(source, target, level) return ({40, 67.5, 95, 122.5, 150})[level] end}, -- need GetBonusHealth(source,0.025)
+    {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({30, 45, 60, 75, 90})[level] + GetMaxHP(source,0.025) + GetAP(source,0.35) end}, 
+    {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({150, 250, 350})[level] + GetAP(source,0.7) end},
+  },
+
+  ["Volibear"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, IsApplyOnHit = true, SpellEffectType = 1, Damage = function(source, target, level) return ({30, 60, 90, 120, 150})[level] end},
+    {Slot = "W", Stage = 1, DamageType = 1, SpellEffectType = 1, Damage = function(source, target, level) return (({60, 110, 160, 210, 260})[level]) end}, -- need GetBonusHealth(source,0.15)
+    {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({60, 105, 150, 195, 240})[level] + GetAP(source,0.6) end},
+    {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({75, 115, 155})[level] + GetAP(source,0.3) end},
+    {Slot = "R", Stage = 16, DamageType = 2, IsApplyOnHit = true, SpellEffectType = 1, Damage = function(source, target, level) return ({75, 115, 155})[level] + GetAP(source,0.3) end},
+  },
+
+  ["Warwick"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, IsApplyOnHit = true, SpellEffectType = 3, Damage = function(source, target, level) return GetAD(source,1.2) + GetAP(source,0.9) + GetMaxHP(target,({0.06, 0.07, 0.08, 0.09, 0.1})[level]) end},
+    {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return ({175, 325, 525})[level] + GetBonusAD(source,1.67) end},
+  },
+
+  ["Xayah"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({40, 60, 80, 100, 120})[level] + GetBonusAD(source,0.5) end},
+    {Slot = "E", Stage = 1, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({50, 60, 70, 80, 90})[level] + GetBonusAD(source,0.6) + GetBonusCriticalDamage(source,0.5) end},
+    {Slot = "R", Stage = 1, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({100, 150, 200})[level] + GetBonusAD(source,1) end},
+  },
+
+  ["Xerath"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({80, 120, 160, 200, 240})[level] + GetAP(source,0.75) end},
+    {Slot = "W", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({60, 90, 120, 150, 180})[level] + GetAP(source,0.6) end},
+    {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return ({80, 110, 140, 170, 200})[level] + GetAP(source,0.45) end},
+    {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({200, 230, 260})[level] + GetAP(source,0.43) end},
+  },
+
+ ["XinZhao"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, IsApplyOnHit = true, SpellEffectType = 1, Damage = function(source, target, level) return ({20, 25, 30, 35, 40})[level] + GetBonusAD(source,0.2) end},
+    {Slot = "W", Stage = 1, DamageType = 1, SpellEffectType = 1, Damage = function(source, target, level) return ({30, 40, 50, 60, 70})[level] + GetAD(source,0.3) end},
+    {Slot = "W", Stage = 5, DamageType = 1, SpellEffectType = 1, Damage = function(source, target, level) return ({30, 65, 100, 135, 170})[level] + GetAD(source,0.75) end},
+    {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return ({50, 75, 100, 1250, 150})[level] + GetAP(source,0.6) end},
+    {Slot = "R", Stage = 1, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({75, 175, 275})[level] + GetAD(source,1) + GetCurrentHP(target,0.15) end},
+  },
+
+  ["Yasuo"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, IsApplyOnHit = true, SpellEffectType = 2, Damage = function(source, target, level) return ({20, 45, 70, 95, 120})[level] + GetAD(source,1) end},
+    {Slot = "Q", Stage = 5, DamageType = 1, IsApplyOnHit = true, SpellEffectType = 2, Damage = function(source, target, level) return ({20, 40, 60, 80, 100})[level] + GetAD(source,1) end},
+    {Slot = "Q", Stage = 6, DamageType = 1, IsApplyOnHit = true, SpellEffectType = 2, Damage = function(source, target, level) return ({20, 40, 60, 80, 100})[level] + GetAD(source,1) end},
+    {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return ({60, 70, 80, 90, 100})[level] + GetAP(source,0.6) + GetBonusAD(source,0.2) end},
+    {Slot = "E", Stage = 12, DamageType = 2, SpellEffectType = 1, Damage = function(source, target, level) return ({15, 17.5, 20, 22.5, 25})[level] end}, -- need check buff name Source."YasuoDashScalar"
+    {Slot = "R", Stage = 1, DamageType = 1, SpellEffectType = 1, Damage = function(source, target, level) return ({200, 300, 400})[level] + GetBonusAD(source,1.5) end},
+  },
+
+  ["Yorick"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, IsApplyOnHit = true, SpellEffectType = 1, Damage = function(source, target, level) return ({30, 55, 80, 105, 130})[level] + GetAD(source,0.4) end},
+    {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return math.min(({70, 105, 140, 175, 210})[level], GetAP(source,0.7)) + GetCurrentHP(target,0.15) end},
+    {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 1, Damage = function(source, target, level) return ({10, 20, 40})[level] + GetAD(source,0.5) end},
+  },
+
+  ["Zac"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return ({30, 40, 50, 60, 70})[level] + GetAP(source,0.3) + GetMaxHP(source,0.025) end},
+    {Slot = "Q", Stage = 5, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return ({30, 40, 50, 60, 70})[level] + GetAP(source,0.3) + GetMaxHP(source,0.025) end},
+    {Slot = "W", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({15, 30, 45, 60, 75})[level] + GetMaxHP(target,({0.04, 0.05, 0.06, 0.07, 0.08})[level] + GetPer100AP(source,0.02)) end},
+    {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({60, 110, 160, 210, 260})[level] + GetAP(source,0.7) end},
+    {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({150, 250, 350})[level] + GetAP(source,0.7) end},
+  },
+
+  ["Zed"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({80, 115, 150, 185, 220})[level] + GetBonusAD(source,0.9) end},
+    {Slot = "E", Stage = 1, DamageType = 1, SpellEffectType = 2, Damage = function(source, target, level) return ({70, 95, 120, 145, 170})[level] + GetBonusAD(source,0.8) end},
+    {Slot = "R", Stage = 1, DamageType = 1, SpellEffectType = 3, Damage = function(source, target, level) return GetAD(source,1) end},
+  },
+
+  ["Ziggs"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({75, 120, 165, 210, 255})[level] + GetAP(source,0.65) end},
+    {Slot = "W", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({70, 105, 140, 175, 210})[level] + GetAP(source,0.65) end},
+    {Slot = "W", Stage = 11, DamageType = 3, SpellEffectType = 2, Damage = function(source, target, level) return GetMaxHP(target,({0.25, 0.275, 0.3, 0.325, 0.35})[level]) end},
+    {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({40, 65, 90, 115, 140})[level] + GetAP(source,0.3) end},
+    {Slot = "E", Stage = 3, DamageType = 2, SpellEffectType = 3, Damage = function(source, target, level) return ({16, 26, 36, 46, 56})[level] + GetAP(source,0.12) end},
+    {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({200, 300, 400})[level] + GetAP(source,0.733) end},
+    {Slot = "R", Stage = 15, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({300, 450, 600})[level] + GetAP(source,1.1) end},
+  },
+
+  ["Zilean"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({75, 115, 165, 230, 300})[level] + GetAP(source,0.9) end},
+  },
+
+  ["Zoe"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({58, 95, 132, 169, 206})[level] + GetAP(source,0.675) end},
+    {Slot = "W", Stage = 1, DamageType = 2, SpellEffectType = 5, Damage = function(source, target, level) return ({70, 115, 160, 205, 250})[level] + GetAP(source,0.5) end},
+    {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({60, 100, 140, 180, 220})[level] + GetAP(source,0.4) end},
+    {Slot = "E", Stage = 14, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({60, 100, 140, 180, 220})[level] + GetAP(source,0.4) end},
+  },
+
+  ["Zyra"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({60, 95, 130, 165, 200})[level] + GetAP(source,0.6) end},
+    {Slot = "E", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({60, 95, 130, 165, 200})[level] + GetAP(source,0.5) end},
+    {Slot = "R", Stage = 1, DamageType = 2, SpellEffectType = 2, Damage = function(source, target, level) return ({180, 265, 350})[level] + GetAP(source,0.7) end},
+  }
 
 }

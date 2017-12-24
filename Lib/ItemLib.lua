@@ -5,6 +5,15 @@ https://github.com/AimTecIO/Aimtec.SDK/blob/master/Aimtec.SDK/Damage/ItemId.cs
 I T E M
 
 
+
+source or target
+
+DamageType = 
+  1="Physical", 
+  2="Magical", 
+  1="True"
+
+
 int   GetItemByID(int nID) -- return pItem
 int   GetItemID(int nSlotItem) -- return item ID
 void  BuyItem(int nID)
@@ -12,7 +21,16 @@ myHero.HasItem(nID)
 
 ]]--
 
+local function GetCurrentHP(unit,factor) return (factor or 1) * unit.HP end
+local function GetMaxHP(unit,factor) return (factor or 1) * unit.MaxHP end
 
+local ItemLibTable = {
+  ["BladeoftheRuinedKing"] = {
+  {ID = 3153, Range = 550, SpellEffectType = 3, DamageType = 1, Damage = function(source, target) return target.Type == 1 and math.min(GetCurrentHP(target,0.08), 60) or math.max(GetCurrentHP(target,0.08), 15) end},
+
+  }
+
+}
 
 local function ID_AbyssalScepter() return 3001 end
 local function ID_AegisoftheLegion() return 3105 end
