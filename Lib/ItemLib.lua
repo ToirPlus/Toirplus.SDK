@@ -2,17 +2,13 @@
 refer link
 https://github.com/AimTecIO/Aimtec.SDK/blob/master/Aimtec.SDK/Damage/ItemId.cs
 
-I T E M
-
-
 
 source or target
 
 DamageType = 
   1="Physical", 
   2="Magical", 
-  1="True"
-
+  3="True"
 
 int   GetItemByID(int nID) -- return pItem
 int   GetItemID(int nSlotItem) -- return item ID
@@ -23,232 +19,296 @@ myHero.HasItem(nID)
 
 local function GetCurrentHP(unit,factor) return (factor or 1) * unit.HP end
 local function GetMaxHP(unit,factor) return (factor or 1) * unit.MaxHP end
+local function GetAD(unit,factor) return (factor or 1) * unit.TotalDmg end
+local function GetAP(unit,factor) return (factor or 1) * unit.MagicDmg end
+local function GetPercentMana(unit) return unit.MP / unit.MaxMP end
+local function GetCurrentMana(unit,factor) return (factor or 1) * unit.MP end
 
-local ItemLibTable = {
+
+local Itemid = {
+        ["AbyssalScepter"] = 3001, 
+        ["AegisoftheLegion"] = 3105, 
+        ["AetherWisp"] = 3113, 
+        ["AmplifyingTome"] = 1052, 
+        ["AncientCoin"] = 3301, 
+        ["ArcaneSweeper"] = 3187, 
+        ["ArchangelsStaff"] = 3003, 
+        ["ArchangelsStaffQuickCharge"] = 3007, 
+        ["ArdentCenser"] = 3504, 
+        ["AthenesUnholyGrail"] = 3174, 
+        ["BamisCinder"] = 3751, 
+        ["BannerofCommand"] = 3060, 
+        ["BansheesVeil"] = 3102, 
+        ["BerserkersGreaves"] = 3006, 
+        ["BFSword"] = 1038, 
+        ["BilgewaterCutlass"] = 3144, 
+        ["BladeoftheRuinedKing"] = 3153, 
+        ["BlastingWand"] = 1026, 
+        ["BootsofMobility"] = 3117, 
+        ["BootsOfSpeed"] = 1001, 
+        ["BootsofSwiftness"] = 3009, 
+        ["BrawlersGloves"] = 1051, 
+        ["CatalystofAeons"] = 3010, 
+        ["CaulfieldsWarhammer"] = 3133, 
+        ["ChainVest"] = 1031, 
+        ["ChaliceofHarmony"] = 3028, 
+        ["CloakofAgility"] = 1018, 
+        ["ClothArmor"] = 1029, 
+        ["ControlWard"] = 2055, 
+        ["CorruptingPotion"] = 2033, 
+        ["CrystallineBracer"] = 3801, 
+        ["Cull"] = 1083, 
+        ["Dagger"] = 1042, 
+        ["DeadMansPlate"] = 3742, 
+        ["DeathsDance"] = 3812, 
+        ["DeathsDaughter"] = 3902, 
+        ["DervishBlade"] = 3137, 
+        ["DietPoroSnax"] = 2054, 
+        ["DoransBlade"] = 1055, 
+        ["DoransRing"] = 1056, 
+        ["DoransShield"] = 1054, 
+        ["DuskbladeofDraktharr"] = 3147, 
+        ["EdgeofNight"] = 3814, 
+        ["ElixirofIron"] = 2138, 
+        ["ElixirofSorcery"] = 2139, 
+        ["ElixirofWrath"] = 2140, 
+        ["EnchantmentBloodrazor"] = 1416, 
+        ["EnchantmentCinderhulk"] = 1401, 
+        ["EnchantmentRunicEchoes"] = 1402, 
+        ["EnchantmentWarrior"] = 1400, 
+        ["EntropyField"] = 3643, 
+        ["EspressoSnax"] = 3682, 
+        ["EssenceReaver"] = 3508, 
+        ["ExecutionersCalling"] = 3123, 
+        ["ExplorersWard"] = 2050, 
+        ["EyeoftheEquinox"] = 2303, 
+        ["EyeoftheOasis"] = 2302, 
+        ["EyeoftheWatchers"] = 2301, 
+        ["FaceoftheMountain"] = 3401, 
+        ["FaerieCharm"] = 1004, 
+        ["FarsightAlteration"] = 3363, 
+        ["FiendishCodex"] = 3108, 
+        ["FireatWill"] = 3901, 
+        ["FlashZone"] = 3640, 
+        ["ForbiddenIdol"] = 3114, 
+        ["FrostedSnax"] = 3680, 
+        ["Frostfang"] = 3098, 
+        ["FrostQueensClaim"] = 3092, 
+        ["FrozenHeart"] = 3110, 
+        ["FrozenMallet"] = 3022, 
+        ["GiantsBelt"] = 1011, 
+        ["GiantSlayer"] = 3034, 
+        ["GlacialShroud"] = 3024, 
+        ["GoldenTranscendence"] = 3460, 
+        ["GoldenTranscendenceDisabled"] = 3461, 
+        ["GreaterStealthTotemTrinket"] = 3361, 
+        ["GreaterVisionTotemTrinket"] = 3362, 
+        ["GuardianAngel"] = 3026, 
+        ["GuardiansHammer"] = 3184, 
+        ["GuardiansHorn"] = 2051, 
+        ["GuardiansOrb"] = 3112, 
+        ["GuinsoosRageblade"] = 3124, 
+        ["HauntingGuise"] = 3136, 
+        ["HeadofKhaZix"] = 3175, 
+        ["HealthPotion"] = 2003, 
+        ["Hexdrinker"] = 3155, 
+        ["HextechGLP800"] = 3030, 
+        ["HextechGunblade"] = 3146, 
+        ["HextechProtobelt01"] = 3152, 
+        ["HextechRevolver"] = 3145, 
+        ["HuntersMachete"] = 1041, 
+        ["HuntersPotion"] = 2032, 
+        ["HuntersTalisman"] = 1039, 
+        ["IcebornGauntlet"] = 3025, 
+        ["InfinityEdge"] = 3031, 
+        ["IonianBootsofLucidity"] = 3158, 
+        ["JaurimsFist"] = 3052, 
+        ["Kindlegem"] = 3067, 
+        ["KircheisShard"] = 2015, 
+        ["KnightsVow"] = 3109, 
+        ["LastWhisper"] = 3035, 
+        ["LiandrysTorment"] = 3151, 
+        ["LichBane"] = 3100, 
+        ["LocketoftheIronSolari"] = 3190, 
+        ["LongSword"] = 1036, 
+        ["LordDominiksRegards"] = 3036, 
+        ["LordVanDammsPillager"] = 3104, 
+        ["LostChapter"] = 3802, 
+        ["LudensEcho"] = 3285, 
+        ["Manamune"] = 3004, 
+        ["ManamuneQuickCharge"] = 3008, 
+        ["MawofMalmortius"] = 3156, 
+        ["MejaisSoulstealer"] = 3041, 
+        ["MercurialScimitar"] = 3139, 
+        ["MercurysTreads"] = 3111, 
+        ["MikaelsCrucible"] = 3222, 
+        ["MoonflairSpellblade"] = 3170, 
+        ["Morellonomicon"] = 3165, 
+        ["MortalReminder"] = 3033, 
+        ["Muramana"] = 3042, 
+        ["NashorsTooth"] = 3115, 
+        ["NeedlesslyLargeRod"] = 1058, 
+        ["NegatronCloak"] = 1057, 
+        ["NexusSiegeSiegeWeaponSlot"] = 3637, 
+        ["NinjaTabi"] = 3047, 
+        ["NomadsMedallion"] = 3096, 
+        ["NullMagicMantle"] = 1033, 
+        ["Ohmwrecker"] = 3056, 
+        ["OracleAlteration"] = 3364, 
+        ["OraclesExtract"] = 2047, 
+        ["OverlordsBloodmail"] = 3084, 
+        ["PerfectHexCore"] = 3198, 
+        ["Phage"] = 3044, 
+        ["PhantomDancer"] = 3046, 
+        ["Pickaxe"] = 1037, 
+        ["PoachersDirk"] = 3252, 
+        ["PoroSnax"] = 2052, 
+        ["PortPad"] = 3635, 
+        ["PrototypeHexCore"] = 3200, 
+        ["QuicksilverSash"] = 3140, 
+        ["RabadonsDeathcap"] = 3089, 
+        ["RainbowSnaxPartyPack"] = 3683, 
+        ["RaiseMorale"] = 3903, 
+        ["RanduinsOmen"] = 3143, 
+        ["RapidFirecannon"] = 3094, 
+        ["RaptorCloak"] = 2053, 
+        ["RavenousHydra"] = 3074, 
+        ["RecurveBow"] = 1043, 
+        ["Redemption"] = 3107, 
+        ["RefillablePotion"] = 2031, 
+        ["RejuvenationBead"] = 1006, 
+        ["RelicShield"] = 3302, 
+        ["RighteousGlory"] = 3800, 
+        ["RodofAges"] = 3027, 
+        ["RodofAgesQuickCharge"] = 3029, 
+        ["RubyCrystal"] = 1028, 
+        ["RubySightstone"] = 2045, 
+        ["RunaansHurricane"] = 3085, 
+        ["RylaisCrystalScepter"] = 3116, 
+        ["SanguineBlade"] = 3181, 
+        ["SapphireCrystal"] = 1027, 
+        ["SeekersArmguard"] = 3191, 
+        ["SeerStoneTrinket"] = 3462, 
+        ["SeraphsEmbrace"] = 3040, 
+        ["SerratedDirk"] = 3134, 
+        ["Sheen"] = 3057, 
+        ["ShieldTotem"] = 3647, 
+        ["SiegeBallista"] = 3631, 
+        ["SiegeRefund"] = 3642, 
+        ["SiegeSightWarder"] = 3649, 
+        ["SiegeTeleport"] = 3630, 
+        ["SiegeTeleportInactive"] = 3648, 
+        ["Sightstone"] = 2049, 
+        ["SkirmishersSabre"] = 3715, 
+        ["SorcerersShoes"] = 3020, 
+        ["SoulAnchorTrinket"] = 3345, 
+        ["SpectresCowl"] = 3211, 
+        ["SpellthiefsEdge"] = 3303, 
+        ["SpiritVisage"] = 3065, 
+        ["StalkersBlade"] = 3706, 
+        ["StatikkShiv"] = 3087, 
+        ["SteraksGage"] = 3053, 
+        ["Stinger"] = 3101, 
+        ["SunfireCape"] = 3068, 
+        ["SuperSpicySnax"] = 3681, 
+        ["SweepingLensTrinket"] = 3341, 
+        ["TalismanofAscension"] = 3069, 
+        ["TargonsBrace"] = 3097, 
+        ["TearoftheGoddess"] = 3070, 
+        ["TearoftheGoddessQuickCharge"] = 3073, 
+        ["TheBlackCleaver"] = 3071, 
+        ["TheBlackSpear"] = 3599, 
+        ["TheBloodthirster"] = 3072, 
+        ["TheDarkSeal"] = 1082, 
+        ["TheHexCoremk1"] = 3196, 
+        ["TheHexCoremk2"] = 3197, 
+        ["TheLightbringer"] = 3185, 
+        ["Thornmail"] = 3075, 
+        ["Tiamat"] = 3077, 
+        ["TitanicHydra"] = 3748, 
+        ["TotalBiscuitofRejuvenation"] = 2010, 
+        ["TowerBeamofRuination"] = 3634, 
+        ["TowerStormBulwark"] = 3636, 
+        ["TrackersKnife"] = 3711, 
+        ["TrinityForce"] = 3078, 
+        ["Unknown1"] = 3632, 
+        ["VampiricScepter"] = 1053, 
+        ["VanguardBanner"] = 3641, 
+        ["VoidStaff"] = 3135, 
+        ["WardensMail"] = 3082, 
+        ["WardingTotemTrinket"] = 3340, 
+        ["WarmogsArmor"] = 3083, 
+        ["WickedHatchet"] = 3122, 
+        ["WitsEnd"] = 3091, 
+        ["WoogletsWitchcap"] = 3090, 
+        ["YoumuusGhostblade"] = 3142, 
+        ["Zeal"] = 3086, 
+        ["ZekesHarbinger"] = 3050, 
+        ["ZhonyasHourglass"] = 3157, 
+        ["ZzRotPortal"] = 3512
+}
+
+local DamageItem = {
+
+--[[ Physical ]]--
   ["BladeoftheRuinedKing"] = {
-  {ID = 3153, Range = 550, SpellEffectType = 3, DamageType = 1, Damage = function(source, target) return target.Type == 1 and math.min(GetCurrentHP(target,0.08), 60) or math.max(GetCurrentHP(target,0.08), 15) end},
+  {Range = 550, DamageType = 1, Damage = function(source, target) return target.Type == 1 and math.min(GetCurrentHP(target,0.08), 60) or math.max(GetCurrentHP(target,0.08), 15) end},
+  },
 
+  ["EnchantmentBloodrazor"] = {
+  {Range = 550, DamageType = 1, Damage = function(source, target) return target.Type == 1 and math.min(GetMaxHP(target,0.04), 75) or GetMaxHP(target,0.04) end},
+  },
+
+  ["RecurveBow"] = {
+  {DamageType = 1, Damage = function(source, target) return 15 end},
+  },
+
+  ["TitanicHydra"] = {
+  {DamageType = 1, Damage = function(source, target) return target.HasBuff("itemtitanichydracleavebuff") == 1 and 40 + GetMaxHP(source,0.1) or 5 + GetMaxHP(target,0.01) end},
+  },
+
+  ["TrinityForce"]{
+  {DamageType = 1, Damage = function(source, target) return target.HasBuff("sheen") == 1 and GetAD(source,2) end},
+  },
+
+  ["Sheen"]{
+  {DamageType = 1, Damage = function(source, target) return target.HasBuff("sheen") == 1 and GetAD(source,1) end},
+  },
+
+  ["Muramana"]{
+  {DamageType = 1, Damage = function(source, target) return GetPercentMana(source) > 0.20 and GetCurrentMana(source,0.06) end},
+  },
+
+--[[ Magical ]]--
+["GuinsoosRageblade"]{
+  {DamageType = 2, Damage = function(source, target) return 15 end},
+  },
+
+["NashorsTooth"]{
+  {DamageType = 2, Damage = function(source, target) return 15 + GetAP(source,0.15) end},
+  },
+
+["WitsEnd"]{
+  {DamageType = 2, Damage = function(source, target) return 40 end},
+  },  
+
+["LichBane"]{
+  {DamageType = 2, Damage = function(source, target) return GetAD(source,0.75) + GetAP(source,0.50) end},
+  },  
+
+["KircheisShard"]{
+  {DamageType = 2, Damage = function(source, target) return GetBuffCount(source, "ItemStatikShankCharge") == 100 and 50 nd},
+  },  
+
+["RapidFirecannon"]{
+  {DamageType = 2, Damage = function(source, target) return GetBuffCount(source, "ItemStatikShankCharge") == 100 and ({50, 50, 50, 50, 50, 50, 56, 67, 72, 77, 83, 88, 94, 99, 104, 110, 115, 120})[math.min(source.Level - 1, 17)] nd},
+  },  
+
+["StatikkShiv"]{
+  {DamageType = 2, Damage = function(source, target) return GetBuffCount(source, "ItemStatikShankCharge") == 100 and ({60, 60, 60, 60, 60, 68, 76, 84, 91, 99, 107, 114, 122, 130, 137, 145, 153, 160})[math.min(source.Level - 1, 17)] nd},
   }
 
 }
 
-local function ID_AbyssalScepter() return 3001 end
-local function ID_AegisoftheLegion() return 3105 end
-local function ID_AetherWisp() return 3113 end
-local function ID_AmplifyingTome() return 1052 end
-local function ID_AncientCoin() return 3301 end
-local function ID_ArcaneSweeper() return 3187 end
-local function ID_ArchangelsStaff() return 3003 end
-local function ID_ArchangelsStaffQuickCharge() return 3007 end
-local function ID_ArdentCenser() return 3504 end
-local function ID_AthenesUnholyGrail() return 3174 end
-local function ID_BamisCinder() return 3751 end
-local function ID_BannerofCommand() return 3060 end
-local function ID_BansheesVeil() return 3102 end
-local function ID_BerserkersGreaves() return 3006 end
-local function ID_BFSword() return 1038 end
-local function ID_BilgewaterCutlass() return 3144 end
-local function ID_BladeoftheRuinedKing() return 3153 end
-local function ID_BlastingWand() return 1026 end
-local function ID_BootsofMobility() return 3117 end
-local function ID_BootsOfSpeed() return 1001 end
-local function ID_BootsofSwiftness() return 3009 end
-local function ID_BrawlersGloves() return 1051 end
-local function ID_CatalystofAeons() return 3010 end
-local function ID_CaulfieldsWarhammer() return 3133 end
-local function ID_ChainVest() return 1031 end
-local function ID_ChaliceofHarmony() return 3028 end
-local function ID_CloakofAgility() return 1018 end
-local function ID_ClothArmor() return 1029 end
-local function ID_ControlWard() return 2055 end
-local function ID_CorruptingPotion() return 2033 end
-local function ID_CrystallineBracer() return 3801 end
-local function ID_Cull() return 1083 end
-local function ID_Dagger() return 1042 end
-local function ID_DeadMansPlate() return 3742 end
-local function ID_DeathsDance() return 3812 end
-local function ID_DeathsDaughter() return 3902 end
-local function ID_DervishBlade() return 3137 end
-local function ID_DietPoroSnax() return 2054 end
-local function ID_DoransBlade() return 1055 end
-local function ID_DoransRing() return 1056 end
-local function ID_DoransShield() return 1054 end
-local function ID_DuskbladeofDraktharr() return 3147 end
-local function ID_EdgeofNight() return 3814 end
-local function ID_ElixirofIron() return 2138 end
-local function ID_ElixirofSorcery() return 2139 end
-local function ID_ElixirofWrath() return 2140 end
-local function ID_EnchantmentBloodrazor() return 1416 end
-local function ID_EnchantmentCinderhulk() return 1401 end
-local function ID_EnchantmentRunicEchoes() return 1402 end
-local function ID_EnchantmentWarrior() return 1400 end
-local function ID_EntropyField() return 3643 end
-local function ID_EspressoSnax() return 3682 end
-local function ID_EssenceReaver() return 3508 end
-local function ID_ExecutionersCalling() return 3123 end
-local function ID_ExplorersWard() return 2050 end
-local function ID_EyeoftheEquinox() return 2303 end
-local function ID_EyeoftheOasis() return 2302 end
-local function ID_EyeoftheWatchers() return 2301 end
-local function ID_FaceoftheMountain() return 3401 end
-local function ID_FaerieCharm() return 1004 end
-local function ID_FarsightAlteration() return 3363 end
-local function ID_FiendishCodex() return 3108 end
-local function ID_FireatWill() return 3901 end
-local function ID_FlashZone() return 3640 end
-local function ID_ForbiddenIdol() return 3114 end
-local function ID_FrostedSnax() return 3680 end
-local function ID_Frostfang() return 3098 end
-local function ID_FrostQueensClaim() return 3092 end
-local function ID_FrozenHeart() return 3110 end
-local function ID_FrozenMallet() return 3022 end
-local function ID_GiantsBelt() return 1011 end
-local function ID_GiantSlayer() return 3034 end
-local function ID_GlacialShroud() return 3024 end
-local function ID_GoldenTranscendence() return 3460 end
-local function ID_GoldenTranscendenceDisabled() return 3461 end
-local function ID_GreaterStealthTotemTrinket() return 3361 end
-local function ID_GreaterVisionTotemTrinket() return 3362 end
-local function ID_GuardianAngel() return 3026 end
-local function ID_GuardiansHammer() return 3184 end
-local function ID_GuardiansHorn() return 2051 end
-local function ID_GuardiansOrb() return 3112 end
-local function ID_GuinsoosRageblade() return 3124 end
-local function ID_HauntingGuise() return 3136 end
-local function ID_HeadofKhaZix() return 3175 end
-local function ID_HealthPotion() return 2003 end
-local function ID_Hexdrinker() return 3155 end
-local function ID_HextechGLP800() return 3030 end
-local function ID_HextechGunblade() return 3146 end
-local function ID_HextechProtobelt01() return 3152 end
-local function ID_HextechRevolver() return 3145 end
-local function ID_HuntersMachete() return 1041 end
-local function ID_HuntersPotion() return 2032 end
-local function ID_HuntersTalisman() return 1039 end
-local function ID_IcebornGauntlet() return 3025 end
-local function ID_InfinityEdge() return 3031 end
-local function ID_IonianBootsofLucidity() return 3158 end
-local function ID_JaurimsFist() return 3052 end
-local function ID_Kindlegem() return 3067 end
-local function ID_KircheisShard() return 2015 end
-local function ID_KnightsVow() return 3109 end
-local function ID_LastWhisper() return 3035 end
-local function ID_LiandrysTorment() return 3151 end
-local function ID_LichBane() return 3100 end
-local function ID_LocketoftheIronSolari() return 3190 end
-local function ID_LongSword() return 1036 end
-local function ID_LordDominiksRegards() return 3036 end
-local function ID_LordVanDammsPillager() return 3104 end
-local function ID_LostChapter() return 3802 end
-local function ID_LudensEcho() return 3285 end
-local function ID_Manamune() return 3004 end
-local function ID_ManamuneQuickCharge() return 3008 end
-local function ID_MawofMalmortius() return 3156 end
-local function ID_MejaisSoulstealer() return 3041 end
-local function ID_MercurialScimitar() return 3139 end
-local function ID_MercurysTreads() return 3111 end
-local function ID_MikaelsCrucible() return 3222 end
-local function ID_MoonflairSpellblade() return 3170 end
-local function ID_Morellonomicon() return 3165 end
-local function ID_MortalReminder() return 3033 end
-local function ID_Muramana() return 3042 end
-local function ID_NashorsTooth() return 3115 end
-local function ID_NeedlesslyLargeRod() return 1058 end
-local function ID_NegatronCloak() return 1057 end
-local function ID_NexusSiegeSiegeWeaponSlot() return 3637 end
-local function ID_NinjaTabi() return 3047 end
-local function ID_NomadsMedallion() return 3096 end
-local function ID_NullMagicMantle() return 1033 end
-local function ID_Ohmwrecker() return 3056 end
-local function ID_OracleAlteration() return 3364 end
-local function ID_OraclesExtract() return 2047 end
-local function ID_OverlordsBloodmail() return 3084 end
-local function ID_PerfectHexCore() return 3198 end
-local function ID_Phage() return 3044 end
-local function ID_PhantomDancer() return 3046 end
-local function ID_Pickaxe() return 1037 end
-local function ID_PoachersDirk() return 3252 end
-local function ID_PoroSnax() return 2052 end
-local function ID_PortPad() return 3635 end
-local function ID_PrototypeHexCore() return 3200 end
-local function ID_QuicksilverSash() return 3140 end
-local function ID_RabadonsDeathcap() return 3089 end
-local function ID_RainbowSnaxPartyPack() return 3683 end
-local function ID_RaiseMorale() return 3903 end
-local function ID_RanduinsOmen() return 3143 end
-local function ID_RapidFirecannon() return 3094 end
-local function ID_RaptorCloak() return 2053 end
-local function ID_RavenousHydra() return 3074 end
-local function ID_RecurveBow() return 1043 end
-local function ID_Redemption() return 3107 end
-local function ID_RefillablePotion() return 2031 end
-local function ID_RejuvenationBead() return 1006 end
-local function ID_RelicShield() return 3302 end
-local function ID_RighteousGlory() return 3800 end
-local function ID_RodofAges() return 3027 end
-local function ID_RodofAgesQuickCharge() return 3029 end
-local function ID_RubyCrystal() return 1028 end
-local function ID_RubySightstone() return 2045 end
-local function ID_RunaansHurricane() return 3085 end
-local function ID_RylaisCrystalScepter() return 3116 end
-local function ID_SanguineBlade() return 3181 end
-local function ID_SapphireCrystal() return 1027 end
-local function ID_SeekersArmguard() return 3191 end
-local function ID_SeerStoneTrinket() return 3462 end
-local function ID_SeraphsEmbrace() return 3040 end
-local function ID_SerratedDirk() return 3134 end
-local function ID_Sheen() return 3057 end
-local function ID_ShieldTotem() return 3647 end
-local function ID_SiegeBallista() return 3631 end
-local function ID_SiegeRefund() return 3642 end
-local function ID_SiegeSightWarder() return 3649 end
-local function ID_SiegeTeleport() return 3630 end
-local function ID_SiegeTeleportInactive() return 3648 end
-local function ID_Sightstone() return 2049 end
-local function ID_SkirmishersSabre() return 3715 end
-local function ID_SorcerersShoes() return 3020 end
-local function ID_SoulAnchorTrinket() return 3345 end
-local function ID_SpectresCowl() return 3211 end
-local function ID_SpellthiefsEdge() return 3303 end
-local function ID_SpiritVisage() return 3065 end
-local function ID_StalkersBlade() return 3706 end
-local function ID_StatikkShiv() return 3087 end
-local function ID_SteraksGage() return 3053 end
-local function ID_Stinger() return 3101 end
-local function ID_SunfireCape() return 3068 end
-local function ID_SuperSpicySnax() return 3681 end
-local function ID_SweepingLensTrinket() return 3341 end
-local function ID_TalismanofAscension() return 3069 end
-local function ID_TargonsBrace() return 3097 end
-local function ID_TearoftheGoddess() return 3070 end
-local function ID_TearoftheGoddessQuickCharge() return 3073 end
-local function ID_TheBlackCleaver() return 3071 end
-local function ID_TheBlackSpear() return 3599 end
-local function ID_TheBloodthirster() return 3072 end
-local function ID_TheDarkSeal() return 1082 end
-local function ID_TheHexCoremk1() return 3196 end
-local function ID_TheHexCoremk2() return 3197 end
-local function ID_TheLightbringer() return 3185 end
-local function ID_Thornmail() return 3075 end
-local function ID_Tiamat() return 3077 end
-local function ID_TitanicHydra() return 3748 end
-local function ID_TotalBiscuitofRejuvenation() return 2010 end
-local function ID_TowerBeamofRuination() return 3634 end
-local function ID_TowerStormBulwark() return 3636 end
-local function ID_TrackersKnife() return 3711 end
-local function ID_TrinityForce() return 3078 end
-local function ID_Unknown1() return 3632 end
-local function ID_VampiricScepter() return 1053 end
-local function ID_VanguardBanner() return 3641 end
-local function ID_VoidStaff() return 3135 end
-local function ID_WardensMail() return 3082 end
-local function ID_WardingTotemTrinket() return 3340 end
-local function ID_WarmogsArmor() return 3083 end
-local function ID_WickedHatchet() return 3122 end
-local function ID_WitsEnd() return 3091 end
-local function ID_WoogletsWitchcap() return 3090 end
-local function ID_YoumuusGhostblade() return 3142 end
-local function ID_Zeal() return 3086 end
-local function ID_ZekesHarbinger() return 3050 end
-local function ID_ZhonyasHourglass() return 3157 end
-local function ID_ZzRotPortal() return 3512 end
+
+
