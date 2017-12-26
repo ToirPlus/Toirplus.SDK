@@ -97,22 +97,26 @@ end
 Callback = class()
 
 local Callbacks = {
-        ["Load"]          = {},
-        ["Tick"]          = {},
-        ["Update"]        = {},
-        ["Draw"]          = {},
-        ["UpdateBuff"]    = {},
-        ["RemoveBuff"]    = {},
-        ["ProcessSpell"]  = {},
-        ["CreateObject"]  = {},
-        ["DeleteObject"]  = {},
-        ["WndMsg"]        = {},
-        ["KeyPress"]      = {},
-        ["DoCast"]        = {},
-        ["PlayAnimation"] = {},
-        ["Vision"]        = {},
-        ["NewPath"]       = {},
-        ["Dash"]          = {},
+        ["Load"]                    = {},
+        ["Tick"]                    = {},
+        ["Update"]                  = {},
+        ["Draw"]                    = {},
+        ["UpdateBuff"]              = {},
+        ["RemoveBuff"]              = {},
+        ["ProcessSpell"]            = {},
+        ["CreateObject"]            = {},
+        ["DeleteObject"]            = {},
+        ["WndMsg"]                  = {},
+        ["KeyPress"]                = {},
+        ["DoCast"]                  = {},
+        ["PlayAnimation"]           = {},
+        ["Vision"]                  = {},
+        ["NewPath"]                 = {},
+        ["Dash"]                    = {},
+        ["BeforeAttack"]            = {},
+        ["Attack"]                  = {},
+        ["AfterAttack"]             = {},
+        ["IssueOrder"]              = {},
 }
 
 Callback.Add = function(type, cb) t.insert(Callbacks[type], cb) end
@@ -315,6 +319,38 @@ function OnPlayAnimation(unit, anim)
         if unit and anim then
                 for i, cb in pairs(Callbacks["PlayAnimation"]) do
                         cb(unit, anim)
+                end
+        end
+end
+
+function OnBeforeAttack(target)
+        if target then
+                for i, cb in pairs(Callbacks["BeforeAttack"]) do
+                        cb(target)
+                end
+        end
+end
+
+function OnAttack(unit, target)
+        if unit and target then
+                for i, cb in pairs(Callbacks["Attack"]) do
+                        cb(unit, target)
+                end
+        end
+end
+
+function OnAfterAttack(unit, target)
+        if unit and target then
+                for i, cb in pairs(Callbacks["AfterAttack"]) do
+                        cb(unit, target)
+                end
+        end
+end
+
+function OnIssueOrder(order, x, z)
+        if order and x and z then
+                for i, cb in pairs(Callbacks["IssueOrder"]) do
+                        cb(order, x, z)
                 end
         end
 end
@@ -584,14 +620,14 @@ function GetOrigin(unit)
         end
 end
 
-function GetTargetById(targetid, range)
+--[[function GetTargetById(targetid, range)
         GetAllUnitAroundAnObject(myHero.Addr, range)
         for i, obj in pairs(pUnit) do
                 if obj ~= 0 and GetId(obj) == targetid then
                         return obj
                 end
         end
-end
+end]]
 
 function GetPing()
         return GetLatency() / 1000
@@ -605,7 +641,6 @@ function GetDistance(p1, p2)
         --local p2 = p2 or GetOrigin(myHero)
 
         --return GetDistance2D(p1.x, p1.z or p1.y, p2.x, p2.z or p2.y)
-    if p1 == nil then return math.huge end
     local p2 = GetOrigin(p2) or GetOrigin(myHero)
     local p1 = GetOrigin(p1)
 
@@ -3824,6 +3859,7 @@ function __minionManager__OnCreateObj(object)
     end
 end
 
+
 function __minionManager__OnCreateObj2(object, mode)
 	if object and object.IsValid and _has_value({1,3},object.Type) then
 			if object and object.IsValid and _has_value({1,3},object.Type) --[["obj_AI_Minion"]] and object.IsVisible and not object.IsDead then
@@ -3862,7 +3898,7 @@ function minionManager:update()
     objManager:update()
     for i = 1, objManager.maxObjects do
         --__minionManager__OnCreateObj(objManager:getObject(i))
-		  __minionManager__OnCreateObj2(objManager:getObject(i), self.mode)
+		__minionManager__OnCreateObj2(objManager:getObject(i), self.mode)
     end
 
     --print(tostring(objManager.maxObjects))
